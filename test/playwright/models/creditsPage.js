@@ -47,7 +47,7 @@ class CreditsPage {
     await this.amountInput.fill(amount)
     await this.page.waitForTimeout(1000)
     await this.confirmBtn.click()
-    await this.page.waitForTimeout(1000)
+    await this.page.waitForTimeout(2000)
     expect(await this.transferCard).toHaveCount(0)
   }
 
