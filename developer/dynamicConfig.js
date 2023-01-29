@@ -3,7 +3,7 @@
  */
 module.exports = {
   remote: {
-    url: 'https://alpha.biz/app/remote_config.json'
+    url: 'https://6.to/app/remote_config.json'
   },
   local: {
     id: 'local_config_v1',

@@ -1,6 +1,6 @@
-# Alphabiz
+# 6to TV and Movie Downloader
 
-[Alphabiz - fully decentralized media platform and blockchain-based marketplace](https://alpha.biz/)
+[6to TV and Movie Downloader - Open source desktop app, using decentralized technology, can be used to upload and download movies.](https://6.to/)
 
 [![CI/CT/CD](https://github.com/tanshuai/alphabiz/actions/workflows/push.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/push.yml)[![CodeQL](https://github.com/tanshuai/alphabiz/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/codeql-analysis.yml)[![Backup Weekly](https://github.com/tanshuai/alphabiz/actions/workflows/weekly.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/weekly.yml)
 
@@ -8,9 +8,9 @@
 - **Streaming Media** with P2P technologies
 - **Media Player** supports mainstream formats & subtitles
 
-![app_img_dark](https://user-images.githubusercontent.com/92558550/211519797-4e766719-f6cf-420e-9e04-0057150c5c3a.jpg)
+![app_img_dark](https://user-images.githubusercontent.com/6119266/215316607-afc89fc8-20ad-406d-ad51-02af86bba3b8.jpg)
 
-Alphabiz is an open source desktop & mobile framework & sdk to build web 3 apps.
+6to is an open source desktop & mobile framework & sdk to build web 3 apps.
 
 ## Supported operating systems
 
@@ -20,9 +20,9 @@ Alphabiz is an open source desktop & mobile framework & sdk to build web 3 apps.
 
 ## Installation
 
-Download the official demo installer for your operating system: https://alpha.biz/download/
+Download the official demo installer for your operating system: https://6.to/download/
 
 ## Nightly Releases
 
-Want to experiment with the latest features and get fixes before everyone else? Install the nightly channel to get access to early builds of Alphabiz: https://github.com/tanshuai/alphabiz/releases?q=nightly
+Want to experiment with the latest features and get fixes before everyone else? Install the nightly channel to get access to early builds of 6to: https://github.com/fengpxu/6to/releases?q=nightly
 
