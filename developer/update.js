@@ -7,13 +7,13 @@ module.exports = {
    */
   github: {
     username: 'fengpxu',
-    repo: '6to-prvt',
+    repo: '6to',
     // if you are using a different branch name, change it here
     branch: 'main',
     /**
      * Internal build repo
      */
-    internalRepo: '6to-prvt'
+    internalRepo: '6to-release'
   },
   /**
    * Amazon S3 bucket for your app
