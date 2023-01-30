@@ -25,6 +25,11 @@ jobs:
         # os: [ubuntu-latest, macos-self-hosted, windows-latest]
         os: [ubuntu-latest]
         node-version: [16]
+    environment:
+      name: CICD
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.PAT }}
+      GITHUB_PAT: ${{ secrets.PAT }}
     steps:
       - name: Set Timezone ${{ steps.slug.outputs.sha7 }}
         run: |
