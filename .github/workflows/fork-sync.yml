@@ -9,10 +9,10 @@ env:
 
 on:
   schedule:
-    - cron: "45 10 * * *"
+    - cron: "00 11 * * *"
   push:
     paths:
-      - "**/fork-sync.yml"
+      - "!**/fork-sync.yml"
     branches: [main]
 
 jobs:
