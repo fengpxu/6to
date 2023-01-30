@@ -1,0 +1,59 @@
+name: CI/CD Upstream Sync
+
+env:
+  name: staging_environment
+  NODE_AUTH_TOKEN: ${{ secrets.PAT }}
+  GITHUB_PAT: ${{ secrets.PAT }}
+
+# concurrency: staging_environment
+
+on:
+  schedule:
+    - cron: "45 10 * * *"
+  push:
+    paths:
+      - "**/fork-sync.yml"
+    branches: [main]
+
+jobs:
+  sync_latest_from_upstream:
+    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [ubuntu-latest, macos-self-hosted, windows-latest]
+        os: [ubuntu-latest]
+        node-version: [16]
+    steps:
+      - name: Set Timezone ${{ steps.slug.outputs.sha7 }}
+        run: |
+          sudo timedatectl set-timezone Asia/Shanghai
+          timedatectl status
+
+      - name: Checkout ⬇️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: main
+          persist-credentials: false
+
+      - name: Pull upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.PAT }}
+          upstream_sync_branch: main
+          upstream_sync_repo: tanshuai/alphabiz
+          upstream_repo_access_token: ${{ secrets.PAT }}
+
+      # - name: fork sync
+      #   run: |
+      #     git remote -v
+      #     git remote add upstream ssh://git@github.com/tanshuai/alphabiz-app.git
+      #     git fetch upstream
+      #     git checkout main
+      #     git merge upstream/main --strategy-option theirs
+      #     git push
+      #   shell: bash
