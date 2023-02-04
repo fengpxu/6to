@@ -1,14 +1,14 @@
-name: alphabiz
-title: Alphabiz
-version: 0.2.1-nightly-202302041621
-summary: Alphabiz Blockchain Cryptocurrency Application
-description: Alphabiz Blockchain Cryptocurrency Application
+name: 6to-app
+title: 6to TV and Movie Downloader
+version: 0.2.1-nightly-202302041902
+summary: 6to Blockchain Cryptocurrency Application
+description: 6to Blockchain Cryptocurrency Application
 grade: stable
 confinement: strict
 base: core18
 
 apps:
-  alphabiz:
+  6to-app:
     plugs:
       - desktop
       - desktop-legacy
@@ -22,7 +22,7 @@ apps:
       - browser-support
       - wayland
     extensions: [gnome-3-28]
-    command: bin/desktop-launch $SNAP/alphabiz/Alphabiz --no-sandbox
+    command: bin/desktop-launch $SNAP/6to-app/sixto --no-sandbox
 
 parts:
   desktop-gnome-platform:
@@ -38,7 +38,7 @@ parts:
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
 
-  alphabiz:
+  6to-app:
     source: out/make/snapcraft
     after:
       - desktop-gnome-platform
@@ -57,7 +57,7 @@ parts:
       - libwayland-server0
       - libasound2
     organize:
-      Alphabiz: alphabiz
+      sixto: 6to-app
 
 plugs:
   gnome-3-28-1804:

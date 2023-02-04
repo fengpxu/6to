@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Alphabiz
-Exec=alphabiz %U
+Name=6to TV and Movie Downloader
+Exec=6to-app %U
 Icon=${SNAP}/meta/gui/icon.png
 Type=Application
 StartupNotify=true
