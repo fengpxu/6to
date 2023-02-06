@@ -25,12 +25,40 @@ apps:
     command: bin/desktop-launch $SNAP/6to-app/sixto --no-sandbox
 
 parts:
+  prepare-alphabiz:
+    plugin: dump
+    source: https://nodejs.org/dist/v16.19.0/node-v16.19.0-linux-x64.tar.xz
+    override-build: |
+      find ~ -type d -name "*alphabiz*" -print
+      echo "---------------------------"
+      echo "$SNAP"
+      pwd
+
+      set -ex
+
+      apt-get install -y curl
+      curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
+      apt-get update
+      apt-get install -y nodejs
+      node -v
+      npm -v
+
+      sudo npm install --global yarn
+      yarn --version
+
+      yarn
+      yarn unpackaged
+      yarn packager
+      yarn node snapcraft
+
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-type: git
     source-depth: 1
     source-subdir: gtk
     plugin: make
+    after:
+      - prepare-alphabiz
     make-parameters: ["FLAVOR=gtk3"]
     build-packages:
       - gcc

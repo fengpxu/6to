@@ -53,6 +53,8 @@ const app = {
    * Website for your app. Used in linux debian package.
    */
   homepage: 'https://6.to',
+
+  webEditionUrl: 'https://web-6-to.pages.dev',
   /**
    * Upgrade code for windows.
    * If two app have a same code, windows will remove old one when installing.
