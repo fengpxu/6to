@@ -1,8 +1,8 @@
-name: 6to-app
-title: 6to TV and Movie Downloader
-version: 0.2.1-nightly-202302041933
-summary: 6to Blockchain Cryptocurrency Application
-description: 6to Blockchain Cryptocurrency Application
+name: alphabiz
+title: Alphabiz
+version: 0.2.1-nightly-202302041843
+summary: Alphabiz Blockchain Cryptocurrency Application
+description: Alphabiz Blockchain Cryptocurrency Application
 grade: stable
 confinement: strict
 base: core18

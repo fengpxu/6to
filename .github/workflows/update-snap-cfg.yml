@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - "developer/**"
+      - "snapcraft/**"
       - "**/update-snap-cfg.yml"
       - "release.json"
     branches: [main]
@@ -18,7 +19,7 @@ on:
 jobs:
   nightly_job:
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message , 'skip workflow')"
+    if: "!contains(github.event.head_commit.message , 'skip update-snap')"
     strategy:
       matrix:
         os: [ubuntu-latest]
