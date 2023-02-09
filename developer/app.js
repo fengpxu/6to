@@ -37,7 +37,13 @@ const app = {
    * Note that this key should not contain special characters(like `<>` above)
    */
   developer: 'Crypto',
-  description: '6to Blockchain Cryptocurrency Application',
+  /**
+   * The app identifier you 've registered for MAS(Mac App Store) in https://developer.apple.com/account.
+   * It is recommended to use `com.YOUR_COMPANY.YOUR_APP_NAME`, with no special characters(spaces, etc).
+   * Different identifiers will be recognized as different apps.
+   */
+  appIdentifier: 'org.zeeis.alphabiz',
+  description: `6to Blockchain Cryptocurrency Application`,
   /**
    * Used to unify locally generated installation packages and the Microsoft Store
    */
