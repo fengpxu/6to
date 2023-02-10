@@ -337,6 +337,13 @@ jobs:
           yarn make
         shell: bash
 
+      - name: get md5 file
+        if: |
+          (contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json'))
+          && contains(steps.vars.outputs.system, 'windows')
+        run: certutil -hashfile ./out/installers/${{ steps.unify.outputs.tag-name }}/*.msi MD5 > msi-md5.txt
+        shell: bash
+
       - name: Release ${{ steps.slug.outputs.file-name-lower }}-${{ steps.unify.outputs.package-name }}-${{ steps.vars.outputs.system }} to GitHub 📰
         if: contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')
         uses: softprops/action-gh-release@v1
@@ -484,14 +491,14 @@ jobs:
             ./out/installers/${{ needs.nightly_job.outputs.tag-name }}/**
 
       # Generate snap token
-      # snapcraft export-login --snaps [SNAP_NAME] --channels candidate,edge -
+      # snapcraft export-login --snaps [SNAP_NAME] --channels edge -
 
       - name: Upload snap to SnapCraft 📰
         if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
-          snapcraft upload --release=candidate,edge ./out/installers/${{ needs.nightly_job.outputs.tag-name }}/*.snap
+          snapcraft upload --release=edge ./out/installers/${{ needs.nightly_job.outputs.tag-name }}/*.snap
 
   appium_test_job:
     needs: [nightly_job, release_job]
