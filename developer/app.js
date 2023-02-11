@@ -43,7 +43,7 @@ const app = {
    * Different identifiers will be recognized as different apps.
    */
   appIdentifier: 'org.zeeis.alphabiz',
-  description: `6to Blockchain Cryptocurrency Application`,
+  description: '6to Blockchain Cryptocurrency Application',
   /**
    * Used to unify locally generated installation packages and the Microsoft Store
    */
