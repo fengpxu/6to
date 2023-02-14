@@ -8,9 +8,9 @@ name: online-experiments
 on:
   push:
     paths:
-      - "!**/online-experiments.yml"
+      - "**/online-experiments.yml"
     branches: [main]
-#
+
 jobs:
   build-1:
     timeout-minutes: 60
@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-22.04]
+        os: [macos-latest]
         node-version: [16]
     environment:
       name: CICD
@@ -120,7 +120,6 @@ jobs:
 
       - name: Get release.json property
         id: release
-        if: contains(env.MODIFIED_FILE_LIST, 'release.json')
         run: |
           CONTENT=$(cat ./release.json)
           TARGET_TAG_NAME=$(echo "$CONTENT" | perl -wnE"say for /(?<=targetTagName\"\:\s\").*(?=\",)/gm")
@@ -140,7 +139,6 @@ jobs:
 
       - name: Checkout release.json target tag
         id: checkout
-        if: contains(env.MODIFIED_FILE_LIST, 'release.json')
         run: |
           git checkout ${{ steps.release.outputs.target-tag-name }}
           git show --name-only
@@ -164,7 +162,6 @@ jobs:
 
       # after git checkout
       - name: Get last commit date \ today all commit message
-        if: contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')
         id: nightly
         run: |
           echo "commit-sha7=$(git log -1 --pretty=%B --author="Alphabiz-Team" | perl -wnE'say for /(?<=-)\w{7}(?=\s)|^\w{7}(?=\s)/g')" >> $GITHUB_OUTPUT
@@ -179,7 +176,6 @@ jobs:
       # nightly-release use tag_name: $packageJsonVersion-internal/nightly-$dateTime-$commitId
       # official-release use tag_name: ./release.json property newTagName
       - name: Unified Tag format
-        if: contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')
         id: unify
         run: |
           if ${{ contains(env.MODIFIED_FILE_LIST, 'release.json') }} ; \
@@ -259,7 +255,6 @@ jobs:
           on_retry_command: rm -rf C:/Users/runneradmin/AppData/Local/node-gyp/
 
       - name: Run electron-packager
-        if: contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')
         run: |
           if ${{ contains(env.MODIFIED_FILE_LIST, 'release.json') }} ; \
           then if ${{ contains(steps.release.outputs.new-tag-name, 'nightly') }} ; \
@@ -268,25 +263,41 @@ jobs:
             fi
           else yarn node update-version.js --buildTime ${{ steps.vars.outputs.date }} ; \
           fi
-          yarn packager
+          brew install coreutils
+          chmod +x ./universal/build-mac.sh && ./universal/build-mac.sh --dev
         shell: bash
 
-      # fix lxd dir error in ubuntu20.04
-      - name: fix lxd dir error
+      - name: check
         run: |
-          sudo ln -s /var/snap/lxd/common/lxd /var/lib/lxd
-          sudo snap install multipass --classic
+          cd build
+          ls
+          echo "---------------"
+          cd electron
+          ls
+        shell: bash
 
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
+      - name: Upload packager Results 🗃
+        if: always()
+        uses: actions/upload-artifact@v2
         with:
-          use_lxd: true
+          name: "${{ matrix.os }}-output"
+          path: ./mac-build.log
 
-      - name: Build snap 📦
-        run: yarn make:snap:ci
+      # # fix lxd dir error in ubuntu20.04
+      # - name: fix lxd dir error
+      #   run: |
+      #     sudo ln -s /var/snap/lxd/common/lxd /var/lib/lxd
+      #     sudo snap install multipass --classic
+
+      # - name: Install Snapcraft
+      #   uses: samuelmeuli/action-snapcraft@v1
+      #   with:
+      #     use_lxd: true
+
+      # - name: Build snap 📦
+      #   run: yarn make:snap:ci
 
       - name: Release ${{ steps.slug.outputs.file-name-lower }}-${{ steps.unify.outputs.package-name }}-${{ steps.vars.outputs.system }} to GitHub 📰
-        if: contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
