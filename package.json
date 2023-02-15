@@ -10,7 +10,7 @@
     "postinstall": "patch-package --error-on-fail && node ./node_modules/symlink-dir/dist/cli.js node_modules/@zeeis/velectron node_modules/electron && ./node_modules/.bin/electron-rebuild -v 17.0.0",
     "packager": "node packager.js",
     "postpackager": "node post-build",
-    "unpackaged": "cd build/electron/UnPackaged && yarn install && ../../../node_modules/.bin/electron-rebuild",
+    "unpackaged": "cd build/electron/UnPackaged && yarn install && ../../../node_modules/.bin/electron-rebuild -v 17.0.0",
     "pretest:e2e:electron:main": "node update-version.js && node copy-patch.js --pre",
     "posttest:e2e:electron:main": "node copy-patch.js --post",
     "pretest:e2e:electron:wallet": "node update-version.js && node copy-patch.js --pre",
@@ -34,13 +34,13 @@
     "test:release:creditsDownload": "jest test/jest/release/creditsDownload.spec.js --c=./test/jest/release/jest.config.js",
     "make": "node make.js --make",
     "make:win": "yarn make:squirrel && yarn make:msi && yarn make:appx",
-    "make:squirrel": "electron-forge make --skip-package --targets @electron-forge/maker-squirrel",
-    "make:appx": "electron-forge make --skip-package --targets @electron-forge/maker-appx",
-    "make:msi": "node ./wix/make.js",
-    "make:dmg": "electron-forge make --skip-package --targets @electron-forge/maker-dmg",
-    "make:deb": "electron-forge make --skip-package --targets @electron-forge/maker-deb",
-    "make:snap": "node snapcraft && snapcraft snap --output=./out/installers/app.snap && node snapcraft --post",
-    "make:snap:ci": "node snapcraft && sg lxd -c 'snapcraft snap --output=./out/installers/app.snap --use-lxd' && node snapcraft --post",
+    "make:squirrel": "node pkg_fmt.js -f exe && electron-forge make --skip-package --targets @electron-forge/maker-squirrel",
+    "make:appx": "node pkg_fmt.js -f appx && electron-forge make --skip-package --targets @electron-forge/maker-appx",
+    "make:msi": "node pkg_fmt.js -f msi && node ./wix/make.js",
+    "make:dmg": "node pkg_fmt.js -f dmg && electron-forge make --skip-package --targets @electron-forge/maker-dmg",
+    "make:deb": "node pkg_fmt.js -f deb && electron-forge make --skip-package --targets @electron-forge/maker-deb",
+    "make:snap": "node pkg_fmt.js -f snap && node snapcraft && snapcraft snap --output=./out/installers/app.snap && node snapcraft --post",
+    "make:snap:ci": "node pkg_fmt.js -f snap && node snapcraft && sg lxd -c 'snapcraft snap --output=./out/installers/app.snap --use-lxd' && node snapcraft --post",
     "postmake": "node make.js --postmake"
   },
   "dependencies": {
@@ -71,6 +71,7 @@
     "appium": "^1.22.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^27.4.6",
+    "commander": "^10.0.0",
     "cross-env": "^7.0.3",
     "csv-parse": "^5.0.4",
     "cypress": "^9.3.1",
@@ -97,10 +98,16 @@
   },
   "optionalDependencies": {
     "electron-installer-debian": "^3.1.0",
-    "exe-icon-extractor": "^1.0.8"
+    "exe-icon-extractor": "^1.0.8",
+    "fswin": "^3.23.119"
   },
   "resolutions": {
-    "electron-wix-msi": "^4.0.0"
+    "bittorrent-protocol": "3.5.1",
+    "bufferutil": "4.0.6",
+    "create-torrent": "5.0.1",
+    "electron-wix-msi": "^4.0.0",
+    "fs-chunk-store": "2.0.4",
+    "utf-8-validate": "5.0.8"
   },
   "config": {
     "forge": "./forge.config.js"
