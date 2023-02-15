@@ -142,7 +142,7 @@ const app = {
   /**
    * Microsoft Store Product ID
    */
-  microsoftStoreProductId: '9PBCCV3MHK04'
+  microsoftStoreProductId: '9P126PHPZ0JH'
 }
 
 console.log('INIT APP CONFIG')
