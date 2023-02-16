@@ -27,7 +27,7 @@ describe('download', () => {
     developmentPage = new DevelopmentPage(client)
   }, 120000)
   afterAll(async () => {
-    await client.deleteSession()
+    client && await client.deleteSession()
   })
   beforeEach(async () => {
     isSuccess = false
@@ -38,7 +38,7 @@ describe('download', () => {
       if (!fs.existsSync(outputPath)) {
         fs.mkdirSync(outputPath, { recursive: true })
       }
-      await client.saveScreenshot(outputPath + `/${expect.getState().currentTestName}.png`)
+      client && await client.saveScreenshot(outputPath + `/${expect.getState().currentTestName}.png`)
     }
   })
   it.skip('delete task', async () => {
@@ -94,9 +94,10 @@ describe('download', () => {
         taskTitle.click()
         // 等待种子开始下载
         await homePage.downloadTorrentBtn.waitUntil(async () => {
+          await sleep(5000)
           if (await homePage.getTask(torrentName) === null) return true
-          const statusText = await homePage.getTaskStatus(torrentName, { isLog: false })
-          return !statusText.include('Loading')
+          const statusText = await homePage.getTaskStatus(torrentName)
+          return statusText.include('Downloading')
         }, {
           timeout: 60000 * 15,
           timeoutMsg: 'task not start'
@@ -126,9 +127,10 @@ describe('download', () => {
         taskTitle.click()
         // 等待种子开始下载
         await homePage.downloadTorrentBtn.waitUntil(async () => {
+          await sleep(5000)
           if (await homePage.getTask(torrentName) === null) return true
-          const statusText = await homePage.getTaskStatus(torrentName, { isLog: false })
-          return !statusText.include('Loading')
+          const statusText = await homePage.getTaskStatus(torrentName)
+          return statusText.includes('Downloading')
         }, {
           timeout: 60000 * 10,
           timeoutMsg: 'task not start'
