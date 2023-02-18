@@ -5,7 +5,7 @@ const fs = require('fs')
 
 const versionJSON = './public/version.json'
 
-const unpackagedVersionJSON = fs.readFileSync('build/electron/UnPackaged/version.json')
+const unpackagedVersionJSON = fs.readFileSync('dist/electron/UnPackaged/version.json')
 const unpackagedVersionObj = JSON.parse(unpackagedVersionJSON)
 const content = {
   packageVer: '',
