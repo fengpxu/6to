@@ -79,7 +79,7 @@ test.beforeAll(async () => {
   currentVersion = version.replace(/^v/, '')
   if (version.includes('internal')) {
     modifyVersion({ version: currentVersion.replace('internal', 'nightly') })
-    await window.reload()
+    await basePage.newReload()
   }
 })
 test.afterAll(async () => {
@@ -102,14 +102,6 @@ test('close set default', async () => {
   } catch (error) {
     console.log('no wait for btn[dont show again]')
   }
-})
-test.skip('close Notice', async () => {
-  const version = await basePage.versionBtn.innerText()
-  if (version.includes('nightly')) this.skip()
-  const internalNoticeCss = '.q-card:has-text("Internal Release Notice")'
-  expect(await window.locator(internalNoticeCss)).toHaveCount(1, { timeout: 10000 })
-  await window.locator(`${internalNoticeCss} button:has-text("close")`).click()
-  await window.locator(internalNoticeCss).waitFor('hidden')
 })
 
 test.describe('custom', () => {
@@ -360,40 +352,40 @@ test.describe('custom', () => {
     })
     test.beforeEach(async () => {
       modifyVersion({ version: currentVersion.replace('internal', 'nightly') })
-      await window.reload()
+      await basePage.newReload()
     })
     test('stable channel', async () => {
       await basicPage.setChannel('stable')
       modifyVersion({ version: currentVersion.replace(/-\w+-\d+/, '') })
-      await window.reload()
+      await basePage.newReload()
       await basePage.checkUpdate('stable')
       modifyVersion({ version: getUpdatableVersion('stable', minVersions, { isExpired: true }) })
-      await window.reload()
+      await basePage.newReload()
       await basePage.checkUpdate('stable', { force: true })
     })
     test('nightly channel', async () => {
       await basicPage.setChannel('nightly')
       modifyVersion({ version: currentVersion.replace('internal', 'nightly') })
-      await window.reload()
+      await basePage.newReload()
       await basePage.checkUpdate('nightly')
       modifyVersion({ version: getUpdatableVersion('nightly', minVersions, { isExpired: true }) })
-      await window.reload()
+      await basePage.newReload()
       await basePage.checkUpdate('nightly', { force: true })
     })
     test('internal channel', async () => {
       await basicPage.setChannel('internal')
       modifyVersion({ version: currentVersion.replace('nightly', 'internal') })
-      await window.reload()
+      await basePage.newReload()
       await basePage.closeInternalNotice()
       await basePage.checkUpdate('internal')
       modifyVersion({ version: getUpdatableVersion('internal', minVersions, { isExpired: true }) })
-      await window.reload()
+      await basePage.newReload()
       await basePage.closeInternalNotice()
       await basePage.checkUpdate('internal', { force: true })
     })
     test.afterAll(async () => {
       modifyVersion({ version: currentVersion.replace('internal', 'nightly') })
-      await window.reload()
+      await basePage.newReload()
     })
   })
   test('waitTime', async () => {

@@ -128,24 +128,26 @@ class BasePage {
   }
 
   async closeInternalNotice () {
-    const internalNoticeCss = '.q-card:has-text("Internal Release Notice")'
+    const internalNoticeCss = '.q-card:has-text("INTERNAL DEMO ONLY")'
     await this.page.locator(internalNoticeCss).waitFor('visible')
     await this.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
-    await this.page.locator(internalNoticeCss).waitFor('hidden')
+    expect(await this.page.locator(internalNoticeCss)).toHaveCount(0)
   }
 
   async newReload () {
     await this.page.reload()
-    const version = await this.versionBtn.innerText()
-    if (version.includes('internal') || version.includes('nightly')) {
-      await this.closeInternalNotice()
+    if (app.displayName === 'Alphabiz') {
+      const version = await this.versionBtn.innerText()
+      if (version.includes('internal') || version.includes('nightly')) {
+        await this.closeInternalNotice()
+      }
     }
   }
 
   async clearLocalstorage () {
     await this.page.evaluate(() => { localStorage.clear() })
     await this.page.waitForTimeout(1000)
-    await this.page.newReload()
+    await this.newReload()
   }
 
   async setToken () {
@@ -158,7 +160,7 @@ class BasePage {
       localStorage.setItem('set-film-rate', 'G')
     }, libraryPair)
     await this.page.waitForTimeout(1000)
-    await this.page.newReload()
+    await this.newReload()
   }
 
   async quickSaveLanguage (targetLanguage) {
@@ -209,7 +211,7 @@ class BasePage {
     } else {
       await this.clearLocalstorage()
       await this.page.waitForTimeout(2000)
-      await this.page.newReload()
+      await this.newReload()
       await this.page.waitForLoadState()
       await this.page.waitForTimeout(2000)
     }
@@ -234,7 +236,7 @@ class BasePage {
         }
       } catch {
         await this.page.evaluate(() => localStorage.clear())
-        await this.page.reload()
+        await this.newReload()
         await this.signIn(username, password, isWaitAlert, isSetToken)
       }
     }
