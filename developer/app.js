@@ -92,10 +92,6 @@ const app = {
    */
   twitterAccount: '@sixdotto',
   /**
-   * Whether to display internal version notice when starting the app
-   */
-  isShowInternalNotice: false,
-  /**
    * Configure who can register accounts in your app
    */
   register: {
