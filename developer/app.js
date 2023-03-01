@@ -41,7 +41,7 @@ const app = {
    * Developer name for windows.
    * Note that this key should not contain special characters(like `<>` above)
    */
-  developer: 'Crypto',
+  developer: '6to Team',
   /**
    * The app identifier you 've registered for MAS(Mac App Store) in https://developer.apple.com/account.
    * It is recommended to use `com.YOUR_COMPANY.YOUR_APP_NAME`, with no special characters(spaces, etc).
@@ -63,7 +63,7 @@ const app = {
   /**
    * Publishers display names that comply with Microsoft Store registration
    */
-  publisherDisplayName: `${APP} Team`,
+  publisherDisplayName: 'Crypto',
   /**
    * Website for your app. Used in linux debian package.
    */
