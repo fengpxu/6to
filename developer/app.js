@@ -61,6 +61,10 @@ const app = {
   publisher: 'CN=5FC4FB0D-0696-440F-8B37-B6180DAA67CF',
 
   /**
+   * Publishers display names that comply with Microsoft Store registration
+   */
+  publisherDisplayName: `${APP} Team`,
+  /**
    * Website for your app. Used in linux debian package.
    */
   homepage: 'https://6.to',
