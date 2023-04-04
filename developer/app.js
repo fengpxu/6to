@@ -27,7 +27,7 @@ const app = {
    * Application ID for android/ios app. The format should be something like
    * `org.author.appname`
    */
-  appId: 'com.zeeis.alphabiz',
+  appId: 'to.six.app',
   /**
    * The bin name for snapcraft, which can be used to launch your app
    * via terminal. Default: `alphabiz`
@@ -47,7 +47,7 @@ const app = {
    * It is recommended to use `com.YOUR_COMPANY.YOUR_APP_NAME`, with no special characters(spaces, etc).
    * Different identifiers will be recognized as different apps.
    */
-  appIdentifier: 'org.zeeis.alphabiz',
+  appIdentifier: 'to.6.app',
   description: '6to Blockchain Cryptocurrency Application',
   /**
    * Used to unify locally generated installation packages and the Microsoft Store
