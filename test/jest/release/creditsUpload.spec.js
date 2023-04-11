@@ -46,9 +46,9 @@ describe('upload', () => {
     expect(1).toBe(1)
   })
   it('upload seeding', async () => {
-    const uploadFilePath = path.resolve(__dirname, '../../cypress/fixtures/samples/GoneNutty.avi')
-    const torrentName = 'GoneNutty.avi'
-    // const torrentName = 'ChinaCup.1080p.H264.AAC.mp4'
+    const uploadFilePath = path.resolve(__dirname, '../../cypress/fixtures/samples/ChinaCup.1080p.H264.AAC.mp4')
+    // const torrentName = 'GoneNutty.avi'
+    const torrentName = 'ChinaCup.1080p.H264.AAC.mp4'
     // 判断是否已经登录
     await sleep(10000)
     await accountPage.ensureSignIn(uploadUser, process.env.TEST_PASSWORD, { isWaitAlert: true })
