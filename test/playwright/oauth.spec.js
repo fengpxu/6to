@@ -4,41 +4,54 @@ const { BasePage } = require('./models/basePage')
 const { OauthPage } = require('./models/oauthPage')
 
 let basePage, oauthPage
-let username, username2,githubUsername
+let username, username2,githubUsername, twitterUsername
 const oauthAccountPassword = process.env.OAUTH_ACCOUNT_PASSWORD
 const password = process.env.TEST_PASSWORD
 if (process.platform === 'win32') {
   username = 'test1'
   username2 = 'test2'
   githubUsername = 'test1'
+  twitterUsername = 'AlphabizT57517'
 } else if (process.platform === 'linux') {
   username = 'test3'
   username2 = 'test4'
-  githubUsername = 'test2'
+  githubUsername = 'test4'
 } else {
   username = 'test5'
   username2 = 'test6'
-  githubUsername = 'test3'
+  githubUsername = 'test5'
 }
 username = username + process.env.TEST_EMAIL_DOMAIN
 username2 = username2 + process.env.TEST_EMAIL_DOMAIN
 githubUsername = githubUsername + process.env.TEST_EMAIL_DOMAIN
 
-let browser, page
+let browser, context, page
 test.beforeAll(async () => {
   browser = await chromium.launch({
     headless: false,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   })
-  // browser = await chromium.launch()
-  page = await browser.newPage()
+
+  context = await browser.newContext();
+  await context.addCookies([{name:"TestEnv", value: 'true', url: "https://web.alpha.biz"}])
+  page = await context.newPage()
+
+  // page = await browser.newPage()
 
   // new Pege Object Model
   basePage = new BasePage(page)
   oauthPage = new OauthPage(page)
 })
 
+// test.afterEach(async ({}, testInfo) => {
+//   if (testInfo.status !== testInfo.expectedStatus) {
+//     process.exit(1)
+//   }
+// })
+
 test.describe('github', () => {
+  test.beforeEach(async ({ }, testInfo) => {
+    test.setTimeout(60000 * 5)
+  })
   test('Ensure disconnected', async () => {
     await page.goto(`https://web.alpha.biz`, { timeout: 40000, waitUntil: 'domcontentloaded' })
     await basePage.signIn(username, password)
@@ -102,6 +115,9 @@ test.describe('github', () => {
 })
 
 test.describe('twitter', () => {
+  test.beforeEach(async ({ }, testInfo) => {
+    test.setTimeout(60000 * 5)
+  })
   test('Ensure disconnected', async () => {
     await page.goto(`https://web.alpha.biz`, { timeout: 40000, waitUntil: 'domcontentloaded' })
     await basePage.signIn(username, password)
@@ -116,7 +132,7 @@ test.describe('twitter', () => {
 
   test('Twitter connected', async () => {
     await oauthPage.twitterStatusBtn.click()
-    await oauthPage.signInTwitter(username, oauthAccountPassword)
+    await oauthPage.signInTwitter(username, oauthAccountPassword, twitterUsername)
     await page.waitForURL('https://web.alpha.biz/**')
     await page.locator('text=Connect to Twitter').waitFor()
     await basePage.checkAlert('Twitter connected', /Twitter connected/)
@@ -128,7 +144,7 @@ test.describe('twitter', () => {
     await basePage.jumpPage('accountSettingLink')
     await page.waitForTimeout(5000)
     await oauthPage.twitterStatusBtn.click()
-    await oauthPage.signInTwitter(username, oauthAccountPassword)
+    await oauthPage.signInTwitter(username, oauthAccountPassword, twitterUsername)
     await basePage.checkAlert('Repeated connection', /The Twitter account has been connected/)
     await basePage.signOut()
   })
@@ -136,7 +152,7 @@ test.describe('twitter', () => {
   test('Login - connected', async () => {
     await page.goto(`https://web.alpha.biz`, { timeout: 40000, waitUntil: 'domcontentloaded' })
     await oauthPage.signInWithTwitterBtn.click()
-    await oauthPage.signInTwitter(username, oauthAccountPassword)
+    await oauthPage.signInTwitter(username, oauthAccountPassword, twitterUsername)
     await page.waitForURL('https://web.alpha.biz/**')
     await basePage.checkAlert('Login - connected', /Signed in/)
     await page.locator('.q-card:has-text("Create or import library key") button:has-text("OK")').click()
@@ -158,7 +174,7 @@ test.describe('twitter', () => {
   test('Login - disconnected', async () => {
     await page.goto(`https://web.alpha.biz`, { timeout: 40000, waitUntil: 'domcontentloaded' })
     await oauthPage.signInWithTwitterBtn.click()
-    await oauthPage.signInTwitter(username, oauthAccountPassword)
+    await oauthPage.signInTwitter(username, oauthAccountPassword, twitterUsername)
     await page.waitForURL('https://web.alpha.biz/**')
     await basePage.checkAlert('Login - unconnected', /Can not log in to an unconnected Twitter account/)
   })
