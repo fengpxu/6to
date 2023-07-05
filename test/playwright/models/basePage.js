@@ -165,11 +165,14 @@ class BasePage {
 
   async quickSaveLanguage (targetLanguage) {
     let language
-    if (targetLanguage === 'EN') language = 'english'
-    else if (targetLanguage === 'CN') language = '简体中文'
+    if (targetLanguage === 'EN') {
+      language = 'English'
+      await this.languageBtn.click()
+      await this.page.locator('label .q-item__section >> nth=0').click()
+    } else if (targetLanguage === 'CN') language = '简体中文'
     else if (targetLanguage === 'TW') language = '繁體中文'
     await this.languageBtn.click()
-    await this.page.locator(`.q-item:has-text("${language}")`).click()
+    await this.page.locator(`.q-item__label:has-text("${language}") >> nth=0`).click()
   }
 
   async signIn (username, password, isWaitAlert, isSetToken = true) {
@@ -179,8 +182,10 @@ class BasePage {
     await this.page.waitForLoadState()
     if (process.platform === 'darwin') await this.page.waitForTimeout(2000)
     if (!await this.accountInput.isVisible()) this.jumpPage('accountSignIn')
-    await this.accountInput.fill(username)
-    await this.passwordInput.fill(password)
+    await this.accountInput.click()
+    await this.page.keyboard.type(username, { delay: 100 })
+    await this.passwordInput.click()
+    await this.page.keyboard.type(password, { delay: 100 })
     await this.signInBtn.click()
 
     if (isWaitAlert) {
@@ -245,8 +250,8 @@ class BasePage {
         await this.signIn(username, password, isWaitAlert, isSetToken)
       }
     }
-    
   }
+
   async checkUpdate (channel, opt = { force: false }) {
     let versionReg
     if (channel === 'stable') {
@@ -274,6 +279,7 @@ class BasePage {
       await expect(await this.updateCard).toHaveCount(0)
     }
   }
+
   async waitLoadingLibKey () {
     try {
       await this.page.locator('text=Loading lib key').waitFor('visible', { timeout: 10000 })
