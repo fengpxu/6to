@@ -98,7 +98,7 @@ class BasePage {
     this.signUpBtn = page.locator('button:has-text("Sign up")')
     this.signOutAnywayBtn = page.locator('button:has-text("Sign out anyway")')
     this.languageBtn = page.locator('.signed-out-actions button:has-text("language")')
-
+    this.account = page.locator('text = Account >> nth=1')
     // alert
     this.alert = page.locator('.q-notifications__list--bottom.items-end >> .q-notification__message')
     this.centerAlert = page.locator('.q-notifications__list--bottom [role="alert"]')
@@ -106,13 +106,36 @@ class BasePage {
     this.signOutAlert = page.locator('div[role="alert"]:has-text("check_circleSigned out")')
     this.defaultAppAlert = page.locator(`text=${app.name} is not your default app for`)
     this.noShowAgainBtn = page.locator('text=SHOW AGAIN')
+    // recommend
+    this.recommendTitle = page.locator('text=Recommend')
+    this.getOneS = page.locator('[style="width: 100%; height: 280px;"] >> nth=0')
+    this.getOne = page.locator('.library-view .library-recommend .recommends .channel-card')
+    this.recommendFollowOenBtn = page.locator('button:has-text("starFollow 1 channels and continue")')
+
+    // initialization
+    // publish
+    this.publishChannelLog = page.locator('.channel-card >> button:has-text("delete")')
+    this.publishEitdCard = page.locator('.add-channel')
+    this.channelDeleteBtn = page.locator('.channel-card >> button:has-text("delete") >> nth=0')
+    this.removeBtn = page.locator('button:has-text("Remove")')
+    // block
+    this.blockBtn = page.locator('button:has-text("Block list manage")')
+    this.blockList = page.locator('tbody :has-text("remove_circle_outline") >> button')
+    this.unblockBtn = page.locator('tbody :has-text("remove_circle_outline") >> nth=0 >> button')
+    // follow
+    this.followList = page.locator('.channel-card:has-text("content_copy")')
+    this.followBtn = page.locator('.relative-position .follow-btn >> nth=0')
+    this.unfollowBtn = page.locator('button:has-text("Unfollow")')
+    // favorites
+    this.starBtn = page.locator('button:has-text("star")')
+    this.empty = page.locator('text=No data available')
   }
 
   /**
    *
    * @param {string} target - homeLink、playerLink、creditsLink、accountLink
    */
-  async jumpPage (firstTarget, secondTarget) {
+  async jumpPage (firstTarget, secondTarget, initialization = true) {
     const menuButton = await this[secondTarget] || await this[firstTarget]
     await this.page.waitForTimeout(500)
     const isHidden = await this[firstTarget].isHidden()
@@ -124,6 +147,7 @@ class BasePage {
         await this[firstTarget].click()
       }
     }
+    if (initialization) await this.recommendHandle()
     await menuButton.click()
   }
 
@@ -203,8 +227,11 @@ class BasePage {
       // if (isSetToken) await this.waitLoadingLibKey()
     }
     if (isSetToken) {
+      await this.page.waitForTimeout(10000)
+      await this.recommendHandle()
       await this.page.locator('.post-card').nth(0).waitFor({ timeout: 30000 })
     }
+    await this.recommendHandle()
   }
 
   async signOut () {
@@ -240,7 +267,7 @@ class BasePage {
         await this.signIn(username, password, isWaitAlert, isSetToken)
       }
       try {
-        await this.accountMore.waitFor()
+        await this.accountMore.waitFor({ timeout: 10000 })
         if (await this.page.locator('text=Loading lib key').isVisible()) {
           // await this.waitLoadingLibKey()
         }
@@ -338,6 +365,59 @@ class BasePage {
     if (options.isWaitAlertHidden) {
       await this.waitForAllHidden(await this[alert])
     }
+  }
+
+  async recommendHandle () {
+    if (await this.recommendTitle.nth(0).isVisible()) {
+      await this.getOneS.click()
+      await this.recommendFollowOenBtn.click()
+      return true
+    }
+    if (await this.recommendTitle.nth(1).isVisible()) {
+      await this.getOne.nth(0).click()
+      await this.recommendFollowOenBtn.click()
+      return true
+    }
+    return false
+  }
+
+  async deletePublish () {
+    await this.jumpPage('editLink')
+    await this.page.waitForTimeout(3000)
+    if (await this.recommendTitle.isVisible()) await this.jumpPage('editLink')
+    await this.publishEitdCard.waitFor()
+    await this.page.waitForTimeout(10000)
+    let logLen = await this.publishChannelLog.count()
+    // console.log('logLen: [ ', logLen, ' ]')
+    if (!logLen) return false
+    while (logLen) {
+      await logLen--
+      await this.page.waitForTimeout(1000)
+      await this.channelDeleteBtn.click()
+      await this.page.waitForTimeout(1000)
+      await this.removeBtn.click()
+      await this.page.waitForTimeout(2000)
+    }
+    await this.page.waitForTimeout(60000)
+    return true
+  }
+
+  async deleteBlock () {
+    await this.jumpPage('accountSettingLink')
+    await this.page.waitForTimeout(3000)
+    if (await this.recommendTitle.isVisible()) await this.jumpPage('accountSettingLink')
+    await this.blockBtn.click()
+    await this.page.waitForTimeout(10000)
+    let logLen = await this.blockList.count()
+    // console.log('logLen: [ ', logLen, ' ]')
+    if (!logLen) return false
+    while (logLen) {
+      await logLen--
+      await this.page.waitForTimeout(1000)
+      await this.unblockBtn.click()
+      await this.page.waitForTimeout(2000)
+    }
+    return true
   }
 }
 
