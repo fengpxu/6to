@@ -2,6 +2,8 @@
 
 [6to TV and Movie Downloader - Open source desktop app, using decentralized technology, can be used to upload and download movies.](https://6.to/)
 
+Read [this document](docs/en_us/README.md) for building your own brand of Alphabiz.
+
 [![CI/CT/CD](https://github.com/tanshuai/alphabiz/actions/workflows/release-nightly.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/release-nightly.yml)[![CodeQL](https://github.com/tanshuai/alphabiz/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/codeql-analysis.yml)[![Backup Weekly](https://github.com/tanshuai/alphabiz/actions/workflows/weekly.yml/badge.svg)](https://github.com/tanshuai/alphabiz/actions/workflows/weekly.yml)
 
 - **Marketplace** built on credit system with decentralized technologies
