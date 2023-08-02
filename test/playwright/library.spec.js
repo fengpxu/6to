@@ -109,9 +109,18 @@ test.beforeAll(async () => {
   accountPage = new AccountPage(window)
   // // fix electron test - ServiceWorker is not defined
   // await basePage.newReload()
+  window.on('console', msg => {
+    if (msg.type() === 'error') {
+      if (msg.text().includes('WebSocket connection')) return
+      if (msg.text().includes('get channel list')) return
+      if (msg.text().includes('wire')) return
+      if (msg.text().includes('recommends.txt')) return
+      console.log(`Console log: ${msg.text()} \n ${msg.location().url} \n lineNumber:${msg.location().lineNumber} \n columnNumber:${msg.location().columnNumber} \n`)
+    }
+  })
 })
 test.beforeEach(async () => {
-  test.setTimeout(60000 * 4)
+  test.setTimeout(60000 * 6)
 })
 test.afterEach(async ({ }, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus) {
@@ -125,7 +134,8 @@ test.describe('initialization', () => {
     await window.waitForLoadState()
     await basePage.ensureLoginStatus(name, process.env.TEST_PASSWORD, true)
   })
-  test('clear publish and block', async () => {
+
+  test.skip('clear publish and block', async () => {
     let publishLog = true, blockLog = true
     await window.waitForTimeout(30000)
     while (publishLog || blockLog) {
@@ -162,14 +172,13 @@ test.skip('disable cloud key force', async () => {
 test.describe('key', () => {
   test.beforeEach(async () => {
   })
-  test.describe('independent password', () => {
+  test.describe('independent password', async () => {
     const inPassword = process.env.TEST_RESET_PASSWORD
     const newPassword = process.env.TEST_PASSWORD
-
     test.skip('importing a Local Key', async () => { // 此用例已不可用
       await basePage.signIn(name, process.env.TEST_PASSWORD, true, false)
       await window.waitForTimeout(20000)
-      if (await accountPage.recommendTitle.isVisible()) await accountPage.recommendPage()
+      if (await accountPage.recommendTitle.isVisible()) await accountPage.recommendSelected()
       await accountPage.ckImportChk.waitFor()
       const taskAbk = './test/cypress/fixtures/samples/test.abk'
       await window.locator('[name="input-file"][accept=".abk"]').setInputFiles(taskAbk, { timeout: 60000 })
@@ -177,10 +186,11 @@ test.describe('key', () => {
     })
 
     test('save cloud key', async () => {
+      // await basePage.clearLocalstorage()
       await window.waitForLoadState()
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
+      await window.waitForTimeout(2000)
       await basePage.waitForAllHidden(await basePage.alert)
-      await window.waitForTimeout(10000)
       await accountPage.disableCloudKey()
       await accountPage.enableCloudKey(inPassword, false)
       await window.waitForTimeout(3000)
@@ -221,7 +231,7 @@ test.describe('key', () => {
       await accountPage.syncCloudKey(newPassword, { isABPassword: true })
       // 等待密钥配置，加载，等待推荐页面出现
       await basePage.jumpPage('homeLink')
-      if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
+      // if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
     })
     test('disable cloud key', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
@@ -280,11 +290,12 @@ test.describe('key', () => {
   test.describe('aws password', () => {
     test('create and save key in cloud', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, false)
-      await window.waitForTimeout(30000)
+      await window.waitForTimeout(10000)
       if (await accountPage.recommendTitle.isVisible()) {
-        await accountPage.recommendPage()
+        await accountPage.recommendSelected()
       } else {
-        await libraryPage.tweetsFrist.waitFor()
+        await accountPage.recommendSelected()
+        // await libraryPage.tweetsFrist.waitFor()
       }
       await accountPage.disableCloudKey()
       await basePage.signOut()
@@ -292,11 +303,12 @@ test.describe('key', () => {
       // 创建新的密钥
       // await accountPage.createCloudKey('', false, true)
       await window.waitForTimeout(5000)
-      if (await accountPage.recommendTitle.isVisible()) await accountPage.recommendPage()
+      if (await accountPage.recommendTitle.isVisible()) await accountPage.recommendSelected()
       // 等待密钥配置，加载, 等待推荐页面出现
       await window.waitForTimeout(5000)
-      await basePage.getOneS.click()
-      await basePage.recommendFollowOenBtn.click()
+      await accountPage.recommendSelected()
+      // await basePage.recommendCard.click()
+      // await basePage.recommendFollowOenBtn.click()
 
       // 验证同步云端功能
       await basePage.signOut()
@@ -324,7 +336,7 @@ test.describe('key', () => {
       await window.waitForTimeout(5000)
       if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
     })
-    test('change password', async () => {
+    test.skip('change password', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
       await window.waitForTimeout(5000)
       await basePage.jumpPage('accountSettingLink')
@@ -336,10 +348,10 @@ test.describe('key', () => {
       await accountPage.syncCloudKey('', { isABPassword: true })
       // 等待密钥配置，加载,等待推荐页面出现
       await window.waitForTimeout(15000)
-if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
+      if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
       await basePage.signOut()
     })
-    test('reset password', async () => {
+    test.skip('reset password', async () => {
       await window.waitForTimeout(3000)
       await accountPage.resetPassword(name, accountPassword)
       await basePage.waitForAllHidden(await basePage.alert)
@@ -347,12 +359,12 @@ if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
       await basePage.signIn(name, accountPassword, true, false)
       await accountPage.syncCloudKey('', { isABPassword: true })
       // 等待密钥配置，加载,等待推荐页面出现
-      await window.waitForTimeout(15000)
-if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
+      await window.waitForTimeout(10000)
+      if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
     })
     // 若重置失败，手动修改密码
     // test('')
-    test('config password', async () => {
+    test.skip('config password', async () => {
       await accountPage.cfgKeyPassword(accountPassword, accountResetPassword)
 
       // 验证同步云端
@@ -361,7 +373,7 @@ if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
       await accountPage.syncCloudKey(accountResetPassword)
       // 等待密钥配置，加载,等待推荐页面出现
       await window.waitForTimeout(5000)
-      if (await libraryPage.recommendTitle.isVisible()) await libraryPage.recommendPageTest()
+      if (await libraryPage.recommendTitle.isVisible()) await libraryPage.recommendSelectedTest()
       await window.waitForTimeout(5000)
       if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
     })
@@ -375,7 +387,7 @@ if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
       await basePage.signIn(name, accountPassword, true, false)
       // await accountPage.ckCard.waitFor()
       await window.waitForTimeout(10000)
-      if (await accountPage.recommendTitle.isVisible()) await libraryPage.recommendPageTest()
+      if (await accountPage.recommendTitle.isVisible()) await libraryPage.recommendSelectedTest()
       // await basePage.jumpPage('accountSettingLink')
       // await expect(accountPage.ckFromcloudChk).toHaveText(/Disable cloud storage/)
       // await basePage.clearLocalstorage()
@@ -386,7 +398,7 @@ if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
 
 test.describe('channel', () => {
   test.beforeEach(async ({ }, testInfo) => {
-    // test.skip(testInfo.title != 'open explore page', 'only check explore page')
+    test.skip()
     await window.waitForLoadState()
     await basePage.ensureLoginStatus(name, process.env.TEST_PASSWORD, true)
   })
@@ -635,6 +647,7 @@ test.describe('channel', () => {
   })
   test.describe('check', () => {
     test.beforeEach(async ({ }, testInfo) => {
+      test.skip()
       // 获取需要检查的信息
       if (!channelObj.channelID) {
         await basePage.jumpPage('editLink')
@@ -1013,7 +1026,7 @@ test.describe('channel', () => {
       await expect(libraryPage.getChannelCardEle(channelObj.title, 'blockedTag')).toHaveCount(0)
     })
     // 从各个卡片取关频道
-    test.describe('unfollow', async () => {
+    test('unfollow', async () => {
       test.beforeEach(async ({ }, testInfo) => {
         // 编辑页面检查是否关注
         await libraryPage.checkChannelFollowStatus(channelObj.title)

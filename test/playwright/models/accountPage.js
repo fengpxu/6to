@@ -102,7 +102,9 @@ class AccountPage extends BasePage {
 
     // recommend page
     this.recommendTitle = page.locator('text=Recommend >> nth=0')
-    this.getOne = page.locator('[style="width: 100%; height: 280px;"] >> nth=0')
+    // this.getOne = page.locator('[style="width: 100%; height: 280px;"] >> nth=0')
+    this.recommendCard = page.locator('.channel-card >> nth=0')
+    this.recommendCardSelected = page.locator('.channel-card.selected')
     this.recommendFollowOenBtn = page.locator('button:has-text("starFollow 1 channels and continue")')
 
     // account
@@ -175,12 +177,12 @@ class AccountPage extends BasePage {
     // await this.waitForSelector(this.backCard, { visible: true })
     // await this.waitForSelector(this.loadCard, { visible: true })
     await this.page.waitForTimeout(20000)
-    if (await this.recommendTitle.isVisible()) await this.recommendPage()
+    if (await this.recommendTitle.isVisible()) await this.recommendSelected()
     // 设置独立密码
     // 是否弹出更新密钥提示框
     if (isUpdate) {
       await this.page.waitForTimeout(10000)
-      if (await this.recommendTitle.isVisible()) await this.recommendPage()
+      if (await this.recommendTitle.isVisible()) await this.recommendSelected()
       // await this.ukOKBtn.click({ timeout: 10000 })
     }
     if (isUpdate && !isABPassword) {
@@ -243,7 +245,7 @@ class AccountPage extends BasePage {
   }
 
   async disableCloudKey () {
-    await this.page.waitForTimeout(15000)
+    await this.page.waitForTimeout(10000)
     await this.jumpPage('accountSettingLink')
     await this.kcCloudBtn.waitFor()
     await this.page.waitForTimeout(3000)
@@ -260,10 +262,20 @@ class AccountPage extends BasePage {
     // await expect(this.kcCard).toHaveText(/Cloud storage disabled/)
   }
 
-  async recommendPage () {
+  // 选择一个推荐
+  async recommendSelected () {
+    // if (await this.recommendTitle.isVisible()) {
+    //   await this.recommendCard.click()
+    //   await this.recommendFollowOenBtn.click()
+    // }
     if (await this.recommendTitle.isVisible()) {
-      await this.getOne.click()
-      await this.recommendFollowOenBtn.click()
+      // 如果已经选了第一个，就不用再点击了直接点击关注
+      if (await this.recommendCardSelected.isVisible()) {
+        await this.recommendFollowOenBtn.click()
+      } else {
+        await this.recommendCard.click()
+        await this.recommendFollowOenBtn.click()
+      }
     }
   }
 

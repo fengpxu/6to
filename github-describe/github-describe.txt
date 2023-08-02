@@ -1,1 +1,1 @@
-fix e2e test
+try fix player errors
