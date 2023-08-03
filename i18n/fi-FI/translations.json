@@ -244,7 +244,7 @@
   "about_cache_node_desc": "${displayName} utilise le serveur gun comme nœud de cache. Vous pouvez modifier les nœuds personnalisés à l'avance",
   "learn_how_to_deploy_gun": "Apprenez à déployer votre propre serveur d'armes",
   "repeat_add": "La tâche a été ajoutée, veuillez ne pas l'ajouter à nouveau",
-  "upload": "Télécharger",
+  "upload": "Téléverser",
   "download": "Télécharger",
   "delete": "Supprimer",
   "delete_task": "Supprimer la tâche",
