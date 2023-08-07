@@ -137,7 +137,7 @@ class BasePage {
    *
    * @param {string} target - homeLink、playerLink、creditsLink、accountLink
    */
-  async jumpPage (firstTarget, secondTarget, initialization = true) {
+  async jumpPage (firstTarget, secondTarget) {
     const menuButton = await this[secondTarget] || await this[firstTarget]
     await this.page.waitForTimeout(500)
     const isHidden = await this[firstTarget].isHidden()
@@ -149,8 +149,16 @@ class BasePage {
         await this[firstTarget].click()
       }
     }
-    if (initialization) await this.recommendHandle()
     await menuButton.click()
+    if (firstTarget === 'accountMore') return
+    await this.page.waitForTimeout(1500)
+    if(await menuButton.isVisible()){
+      const buttonBoundingBox = await menuButton.boundingBox()
+      const {x,y,width,height} = buttonBoundingBox;
+      const clickX = x + width + 10 //假设相对于按钮的右侧有10px的空白区域
+      const clickY = y + height/2 //点击位置垂直居中
+      await this.page.mouse.click(clickX,clickY)
+    }
   }
 
   async closeInternalNotice () {
@@ -160,6 +168,7 @@ class BasePage {
       this.page.locator(internalNoticeCss).waitFor({ state:'hidden', timeout: 30000 }),
       this.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
     ]
+    await this.page.waitForTimeout(2000)
   }
 
   async newReload () {
@@ -226,8 +235,13 @@ class BasePage {
         await this.alert.waitFor({ timeout: 90000 })
         const alertText = await this.alert.innerText()
         console.log('alert: [ ', alertText, ' ]')
+      } else if (alertText.includes('Incorrect username or password')) {
+        return "incorrect"
+      } else if (alertText.includes('Password attempts exceeded')) {
+        return "trylater"
       }
       await this.signInAlert.waitFor()
+      return "success"
       // if (isSetToken) await this.waitLoadingLibKey()
     }
     if (isSetToken) {
@@ -256,19 +270,29 @@ class BasePage {
     }
   }
 
+  /**
+   * 
+   * @param {*} username 
+   * @param {*} password 
+   * @param {*} isWaitAlert 
+   * @param {*} isSetToken 
+   * @returns message {"incorrect", "trylater", "success"}
+   */
   // Determine whether to log in and log in for download tests
   async ensureLoginStatus (username, password, isWaitAlert, isSetToken = true) {
     await this.page.waitForTimeout(500)
     const count = await this.page.locator('.q-card:has-text("INTERNAL DEMO ONLY")').count()
     if (count) await this.closeInternalNotice()
     // if not logged in
+    let message ;
     if (await this.accountInput.isVisible()) {
-      await this.signIn(username, password, isWaitAlert, isSetToken)
+      message = await this.signIn(username, password, isWaitAlert, isSetToken)
     } else {
+      await this.page.waitForTimeout(4000)
       const leftBar = await this.downloadingStatus.isVisible()
       if (!leftBar) await this.menuIcon.click()
       if (await this.accountSignIn.isVisible()) {
-        await this.signIn(username, password, isWaitAlert, isSetToken)
+        message = await this.signIn(username, password, isWaitAlert, isSetToken)
       }
       try {
         await this.accountMore.waitFor({ timeout: 10000 })
@@ -278,9 +302,10 @@ class BasePage {
       } catch {
         await this.page.evaluate(() => localStorage.clear())
         await this.newReload()
-        await this.signIn(username, password, isWaitAlert, isSetToken)
+        message = await this.signIn(username, password, isWaitAlert, isSetToken)
       }
     }
+    return message
   }
 
   async checkUpdate (channel, opt = { force: false }) {
@@ -369,6 +394,7 @@ class BasePage {
     if (options.isWaitAlertHidden) {
       await this.waitForAllHidden(await this[alert])
     }
+    return alertText;
   }
 
   async recommendHandle () {
