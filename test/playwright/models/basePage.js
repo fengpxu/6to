@@ -177,10 +177,26 @@ class BasePage {
     if (app.displayName === 'Alphabiz') {
       const version = await this.versionBtn.innerText()
       if (version.includes('internal') || version.includes('nightly')) {
-        await this.closeInternalNotice()
+        // await this.closeInternalNotice()
       }
     }
   }
+
+  async checkForPopup () {
+  while (true) {
+    try {
+      // 等待弹窗出现，但如果5秒内没有出现就会抛出一个错误
+      await this.page.waitForSelector('.q-card:has-text("INTERNAL DEMO ONLY")', { timeout: 5000 });
+      console.log('checkForPopup发现了弹窗')
+      // 如果上一行代码没有抛出错误，那么弹窗已经出现，我们可以关闭它
+      await this.closeInternalNotice()
+      console.log('checkForPopup关闭了弹窗')
+    } catch (error) {
+      // 我们捕获了错误，但什么都不做，因为错误只是表示弹窗没有出现
+    }
+  }
+}
+
 
   async clearLocalstorage () {
     await this.page.evaluate(() => { localStorage.clear() })
@@ -284,7 +300,7 @@ class BasePage {
   async ensureLoginStatus (username, password, isWaitAlert, isSetToken = true) {
     await this.page.waitForTimeout(500)
     const count = await this.page.locator('.q-card:has-text("INTERNAL DEMO ONLY")').count()
-    if (count) await this.closeInternalNotice()
+    // if (count) await this.closeInternalNotice()
     // if not logged in
     let message ;
     if (await this.accountInput.isVisible()) {
