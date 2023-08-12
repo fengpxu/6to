@@ -183,11 +183,16 @@ class BasePage {
 
   async closeInternalNotice () {
     const internalNoticeCss = '.q-card:has-text("INTERNAL DEMO ONLY")'
-    await this.page.locator(internalNoticeCss).waitFor({timeout:10000})
-    await his.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
+    await this.page.locator(internalNoticeCss).waitFor()
+    await Promise.all[
+      this.page.locator(internalNoticeCss).waitFor({ state: 'hidden', timeout: 30000 }),
+      this.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
+    ]
+    await this.page.waitForTimeout(2000)
   }
 
   async newReload () {
+    console.log('调用一次newReload')
     await this.page.reload()
     if (app.displayName === 'Alphabiz') {
       const version = await this.versionBtn.innerText()
@@ -201,18 +206,23 @@ class BasePage {
   while (true) {
     // 循环时间，监督弹窗的出现
     try {
-      const element = await this.page.waitForSelector('.q-card:has-text("INTERNAL DEMO ONLY")', { timeout: 2147483647 });
-      if(element){
+      await this.page.waitForSelector('.q-card:has-text("INTERNAL DEMO ONLY")', { timeout: 45464646 });
+      console.log('疑似弹窗，观察1s')
+      await this.page.waitForTimeout(1000)
+      const confirm = await this.page.waitForSelector('.q-card:has-text("INTERNAL DEMO ONLY")', { timeout: 1000 });
+      if(confirm){
         console.log('checkForPopup发现了弹窗')
         await this.closeInternalNotice() 
         console.log('checkForPopup关闭了弹窗')
+      }else{
+        console.log('消失了')
       }
     } catch (error) {
       if (error.message.includes('Timeout')) {
-        if (msg) console.log(msg)
         return null;
       } else {
         console.log(error.message)
+        await this.page.waitForTimeout(5000)
       }
     }
   }
@@ -256,7 +266,13 @@ class BasePage {
     }
     await this.page.waitForLoadState()
     if (process.platform === 'darwin') await this.page.waitForTimeout(2000)
-    if (!await this.accountInput.isVisible()) this.jumpPage('accountSignIn')
+    if (!await this.accountInput.isVisible()) {
+      console.log('看不到accountInput')
+      this.jumpPage('accountSignIn')
+    } else{
+      console.log('看见了accountInput')
+      this.page.waitForTimeout(1000)
+    }
     await this.accountInput.click()
     await this.page.keyboard.type(username, { delay: 100 })
     await this.passwordInput.click()

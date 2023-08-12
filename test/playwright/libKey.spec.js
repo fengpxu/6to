@@ -14,7 +14,7 @@ const app = require('../../developer/app.js')
 let window, windows, electronApp, basePage, homePage, libraryPage, playerPage, basicPage, accountPage
 const ScreenshotsPath = 'test/output/playwright/library_key.spec/'
 
-let name, checkName
+let name
 if (process.platform === 'win32') {
   name = 'test7'
 } else if (process.platform === 'linux') {
@@ -28,31 +28,24 @@ var accountResetPassword = process.env.TEST_RESET_PASSWORD
 
 
 test.beforeAll(async () => {
-  // Launch Electron app.
   electronApp = await electron.launch({
     args: [
       '--inspect=5858',
       electronMainPath
     ]
   })
-  // Evaluation expression in the Electron context.
   await electronApp.evaluate(async ({ app }) => {
-    // This runs in the main Electron process, parameter here is always
-    // the result of the require('electron') in the main app script.
     return app.getAppPath()
   })
-  // Get the first window that the app opens, wait if necessary.
   window = await electronApp.firstWindow()
 
   await window.waitForTimeout(6000)
-  // should main window
   windows = electronApp.windows()
 
   for (const win of windows) {
     console.log(await win.title())
     if (await win.title() === 'Alphabiz') window = win
   }
-  // new Pege Object Model
   basePage = new BasePage(window)
   homePage = new HomePage(window)
   libraryPage = new LibraryPage(window)
@@ -98,13 +91,9 @@ test.describe('librayKey:媒体库密钥测试', () => {
     await basePage.ensureLoginStatus(name, accountPassword, true, true)
     console.log('已经登录')
     await basePage.waitForAllHidden(await basePage.alert)
-    try {
-      console.log('等待主页中的工具栏的图标出现，否则稍等片刻会强制跳转回主页')
-      await window.waitForSelector('.q-toolbar:has-text("Type") >> text="arrow_drop_down"', { timeout: 60000 })
-      console.log('已出现，页面加载完毕')
-    } catch (error) {
-      console.log('网络差，主页没有加载出来')
-    }
+    console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
+    await window.waitForSelector('.post-channel-info', { timeout: 60000 })
+    console.log('已出现，页面加载完毕')
     await console.log("准备清除密钥")
     await accountPage.disableCloudKey()
     await console.log("成功清除密钥")
@@ -120,90 +109,72 @@ test.describe('librayKey:媒体库密钥测试', () => {
       await window.waitForLoadState()
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
       await basePage.waitForAllHidden(await basePage.alert)
-      // await window.waitForTimeout(3000)
-      try {
-        console.log('等待主页中的工具栏的图标出现，否则稍等片刻会强制跳转回主页')
-        await window.waitForSelector('.q-toolbar:has-text("Type") >> text="arrow_drop_down"', { timeout: 60000 })
-        console.log('已出现，页面加载完毕')
-      } catch (error) {
-        console.log('网络差，页面没有加载出来')
-      }
-      // isABPassword = false, 不使用账户密码
+      console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
+      await window.waitForSelector('.post-channel-info', { timeout: 60000 })
+      console.log('已出现，页面加载完毕')
       try{
         await accountPage.disableCloudKey()
       } catch(error) {
         console.log('云端存储原本就已经关闭')
       }
       await console.log('使用独立密码新建密钥')
+      // isABPassword = false, 不使用账户密码, 使用独立密码
       await accountPage.enableCloudKey(inPassword, false)
       await console.log('新建完毕')
       await window.waitForTimeout(3000)
-      // 验证同步云端
       await console.log('准备退出')
       await basePage.signOut()
       await basePage.signIn(name, accountPassword, true, false)
       await accountPage.syncCloudKey(inPassword)
-      // 等待密钥配置，加载,等待推荐页面出现
       await basePage.jumpPage('homeLink')
-      try{
-        await window.locator('.post-card').nth(0).waitFor({ timeout: 60000 })
-      }catch(error){
-        console.log('网络差，没有加载出卡片')
-      }
+      console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
+      await window.waitForSelector('.post-channel-info', { timeout: 60000 })
+      console.log('已出现，页面加载完毕')
     })
     test('修改独立密码', async () => {
-      //修改独立密码
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
       console.log('修改访问密钥的独立密码')
       await accountPage.cfgKeyPassword(inPassword, newPassword)
-      // 验证同步云端
       await basePage.signOut()
       await basePage.waitForAllHidden(await basePage.alert)
       console.log('重新登录')
       await basePage.signIn(name, accountPassword, true, false)
       console.log('输入新的独立密码来导入密钥')
       await accountPage.syncCloudKey(newPassword)
-      // 等待密钥配置，加载,等待推荐页面出现
       await basePage.jumpPage('homeLink')
-      await window.locator('.post-card').nth(0).waitFor({ timeout: 30000 })
+      console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
+      await window.waitForSelector('.post-channel-info', { timeout: 60000 })
+      console.log('已出现，页面加载完毕')
     }) 
     test('结束前清除密钥', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, true)
       await basePage.waitForAllHidden(await basePage.alert)
       await window.waitForTimeout(5000)
       await accountPage.disableCloudKey()
-      // 验证取消同步云端
       await basePage.signOut()
     })
   })
   test.describe('账户密码', () => {
     test('登陆后自动创建媒体库密钥并备份到云', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, false)
-      // 1. 等待showMoreBtn出现，可能有时候加载很慢
       console.log('等待showMore按钮出现')
       await libraryPage.showMoreBtn.waitFor({timeout: 60000})
-      // 2. 判断是否有选中频道(.channel-card.selected)
-      // 问题：判断语句 怎么用？
       console.log('是否已经有选中的频道')
       if (!await libraryPage.channelSelected.isVisible()) {
         console.log('没有，现在选上第一个频道卡片')
-        //如果没有，则选中第一个.channel - card元素
         await libraryPage.chanel1Global.click(); //全局推荐页的第一个频道定位
       } else {
         console.log('有')
       }
       console.log('点击Follow')
-      // 3. 点击Follow按钮
       await libraryPage.channelFollowsBtn.click();
-      // 4. 等待home页面出现第一个post-card元素出现
       console.log('等待首页第一个卡片出现')
       await window.locator('.post-card').nth(0).waitFor({timeout:60000})
-      // 验证同步云端功能
       console.log('退出')
       await basePage.signOut()
       console.log('重新登录')
       await basePage.signIn(name, accountPassword, true, false)
-      console.log('等待出现第一张卡片，证明保存了上次Follow的频道')
+      console.log('等待出现第一张卡片, 证明保存了上次Follow的频道')
       await window.locator('.post-card').nth(0).waitFor({ timeout: 60000 })
       console.log('退出')
       await basePage.signOut()
@@ -211,16 +182,12 @@ test.describe('librayKey:媒体库密钥测试', () => {
     // 密钥的更新
     test('登陆后更新密钥', async () => {
       await basePage.ensureLoginStatus(name, accountPassword, true, false)
-      // 创建新的密钥
       console.log('登陆后选择创建新密钥')
       await accountPage.createCloudKey('', true, true)
       console.log('新密钥自动备份并导入客户端，等待第一张卡片出现')
       await window.locator('.post-card').nth(0).waitFor({ timeout: 60000 })
-      // 验证同步云端功能
       await basePage.signOut()
       await basePage.signIn(name, accountPassword, true, false)
-      await accountPage.syncCloudKey('', { isABPassword: true })
-      // 等待密钥配置，加载，等待推荐页面出现
       await window.locator('.post-card').nth(0).waitFor({ timeout: 60000 })
     })
     // 更新账户密码
@@ -240,11 +207,9 @@ test.describe('librayKey:媒体库密钥测试', () => {
       } else {
         console.log('修改成功')
       }
-      // 验证同步云端
       await basePage.signOut()
       await basePage.signIn(name, accountResetPassword, true, false)
       await accountPage.syncCloudKey('', { isABPassword: true })
-      // 等待密钥配置，加载,等待推荐页面出现
       await window.waitForTimeout(15000)
       if (!await basePage.recommendHandle()) await libraryPage.tweetsFrist.waitFor()
       await basePage.signOut()
@@ -273,10 +238,8 @@ test.describe('librayKey:媒体库密钥测试', () => {
         await basePage.signOut()
       }
       await basePage.waitForAllHidden(await basePage.alert)
-      // 验证同步云端
       await basePage.signIn(name, accountPassword, true, false)
       await accountPage.syncCloudKey('', { isABPassword: true })
-      // 等待密钥配置，加载,等待推荐页面出现
       await window.waitForTimeout(15000)
       await basePage.signOut()
     })
@@ -302,11 +265,9 @@ test.describe('librayKey:媒体库密钥测试', () => {
       } else {
         console.log('修改成功')
       }
-      // 验证同步云端
       await basePage.signOut()
       await basePage.signIn(name, accountResetPassword, true, false)
       await accountPage.syncCloudKey('', { isABPassword: true })
-      // 等待密钥配置，加载,等待推荐页面出现
       await window.waitForTimeout(15000)
       console.log('清除密钥')
       await accountPage.disableCloudKey()
