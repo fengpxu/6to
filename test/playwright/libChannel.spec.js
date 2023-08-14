@@ -96,6 +96,11 @@ test.beforeAll(async () => {
   basePage.checkForPopup()
 })
 
+test.afterAll(async()=>{
+  console.log('测试完成之后，退出登录')
+  await basePage.signOut()
+})
+
 
 
 test.beforeEach(async () => {
@@ -112,7 +117,7 @@ test.beforeEach(async () => {
       console.log('有')
     } catch (error) {
       console.log('没有')
-      console.log('等待出现推荐页面的第一个频道')
+      console.log('等待出现局部推荐页面的第一个频道')
       await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
       if (!await libraryPage.channelSelected.isVisible()) {
         console.log('选中第一个频道')
@@ -143,10 +148,10 @@ test('checkNetwork-检查节点连接是否正常', async ()=>{
   const connector = await window.waitForSelector('.connection-status')
   await connector.click()
   console.log('检查gun-manhattan的节点是否正常')
-  const manhattan = await basePage.waitForSelectorOptional('.q-table:has-text("status") tr>>nth=1>>.text-green', { timeout: 60000}, '异常, 在60s之内不能连接上gun-manhattan的节点')
+  const manhattan = await basePage.waitForSelectorOptional('.q-table:has-text("status") tr>>nth=1>>.text-green', { timeout: 30000}, '异常, 在30s之内不能连接上gun-manhattan的节点')
   if(manhattan) console.log('正常')
   console.log('检查gun-server的节点是否正常')
-  const server = await basePage.waitForSelectorOptional('.q-table:has-text("status") tr>>nth=2>>.text-green', { timeout: 60000}, '异常, 在60s之内不能连接上gun-server的节点')
+  const server = await basePage.waitForSelectorOptional('.q-table:has-text("status") tr>>nth=2>>.text-green', { timeout: 30000}, '异常, 在30s之内不能连接上gun-server的节点')
   if(server) console.log('正常')
   console.log('有没有关闭按钮')
   const seeCloseBtn = await window.locator('button:has-text("close")').isVisible()

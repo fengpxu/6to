@@ -160,9 +160,16 @@ class BasePage {
   async jumpPage (firstTarget, secondTarget) {
     const menuButton = await this[secondTarget] || await this[firstTarget]
     await this.page.waitForTimeout(500)
-    const isHidden = await this[firstTarget].isHidden()
-    if (isHidden) {
-      await this.menuIcon.click({ timeout: 60000 })
+    try{
+      const isHidden = await this[firstTarget].isHidden()
+      if (isHidden) {
+        await this.menuIcon.click({ timeout: 60000 })
+      }
+    }catch(error){
+      console.log('isHidden failed')
+      await this.page.screenshot({ path: `test/output/playwright/basePage/jumpPage-fail.png` })
+      console.log('截屏，刷新页面')
+      await this.page.reload()
     }
     if (secondTarget) {
       if (await menuButton.isHidden()) {
@@ -183,16 +190,7 @@ class BasePage {
 
   async closeInternalNotice () {
     const internalNoticeCss = '.q-card:has-text("INTERNAL DEMO ONLY")'
-    try{
-      await this.page.locator(internalNoticeCss).waitFor()
-      await Promise.all[
-        this.page.locator(internalNoticeCss).waitFor({ state: 'hidden', timeout: 5000 }),
-        this.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
-      ]
-    }catch(error){
-      console.log('弹窗消失')
-    }
-    await this.page.waitForTimeout(2000)
+    await this.page.locator(`${internalNoticeCss} button:has-text("close")`).click()
   }
 
   async newReload () {
@@ -209,21 +207,13 @@ class BasePage {
   }
 
   async checkForPopup () {
-  while (true) {
-    // 循环时间，监督弹窗的出现
-    try {
+    while(true){
       await this.page.waitForSelector('.q-card:has-text("INTERNAL DEMO ONLY")', { timeout: 45464646 });
       console.log('checkForPopup发现了弹窗')
       await this.closeInternalNotice() 
       console.log('checkForPopup关闭了弹窗')
-    } catch (error) {
-      if (error.message.includes('Timeout')) {
-        return null;
-      } else {
-        console.log(error.message)
-      }
+      await this.page.waitForTimeout(5000)
     }
-  }
 }
 
 
@@ -313,6 +303,7 @@ class BasePage {
         const clickX = x + width/2
         const clickY = y + height/2
         await this.page.mouse.click(clickX,clickY)
+        console.log('点击到退出选项')
       }else{
         console.log('没有捕获到退出选项')
       }
