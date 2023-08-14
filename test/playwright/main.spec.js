@@ -139,6 +139,7 @@ test.afterEach(async ({}, testInfo) => {
   }
 })
 test('close set default', async () => {
+  console.log('刷新')
   await basePage.newReload()
   try {
     await basePage.defaultAppAlert.waitFor({ timeout: 3000 })
@@ -250,15 +251,44 @@ test.describe('切换语言设置', () => {
       if (process.platform === 'darwin') {
         test.skip()
       }
+    })
+    // EN -> CN -> TW -> EN
+    test('语言重复切换-EN->CN->TW->EN', async () => {
       // 确保语言en
       await basePage.clearLocalstorage()
       await window.waitForTimeout(3000)
       await basePage.quickSaveLanguage('EN')
-      await basePage.ensureLoginStatus(to, process.env.TEST_PASSWORD, 1)
+      const message = await basePage.ensureLoginStatus(to, process.env.TEST_PASSWORD, 1) //登陆
+      if (message == "success") {
+        await basePage.waitForAllHidden(await basePage.alert)
+      }
       await window.waitForLoadState()
-    })
-    // EN -> CN -> TW -> EN
-    test('语言重复切换-EN->CN->TW->EN', async () => {
+      const inHome = await window.locator('.left-drawer-menu .q-item:has-text("home").active-item').isVisible()
+      if (inHome) {
+        console.log('是否有Follow菜单项')
+        try {
+          await window.waitForSelector('.left-drawer-menu >> text=following', { timeout: 10000 })
+          console.log('有')
+        } catch (error) {
+          console.log('没有')
+          console.log('等待出现局部推荐页面的第一个频道')
+          await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
+          if (!await libraryPage.channelSelected.isVisible()) {
+            console.log('选中第一个频道')
+            await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
+            console.log('成功选中')
+          }
+          console.log('点击Follow')
+          // 3. 点击Follow按钮
+          await libraryPage.channelFollowsBtn.click();
+          console.log('成功Follow了一个频道')
+          if (await basePage.followingLink.isVisible()) {
+            console.log('菜单中出现了Follow选项')
+          }
+        }
+        const mainLoad = await basePage.waitForSelectorOptional('.post-channel-info', { timeout: 60000 }, "主页在1分钟内没有加载出来")
+        if (mainLoad) console.log('已出现，页面加载完毕')
+      }
       console.log('EN->CN')
       await basicPage.saveLanguage('EN', 'CN')
       await expect(await basicPage.headerTitle).toHaveText(/基础设置/, { timeout: 20000 })
@@ -268,6 +298,26 @@ test.describe('切换语言设置', () => {
       console.log('TW->EN')
       await basicPage.saveLanguage('TW', 'EN')
       await expect(await basicPage.headerTitle).toHaveText(/Basic/, { timeout: 20000 })
+    })
+    test('确保最后的语言是EN', async () => {
+      try{
+        console.log('先跳转到基础设置页')
+        await window.locator('.q-item:has-text("assignment")').click()
+        console.log('跳转到基础设置页, 断言标题是Basic')
+        await expect(await basicPage.headerTitle).toHaveText(/Basic/, { timeout: 5000 })
+        console.log('√断言成功')
+      }catch(error){
+        console.log('×断言失败')
+        console.log('点击语言下拉框')
+        await window.locator('.q-field__append >> nth=0').click()
+        console.log('点击第一项就是英语')
+        await window.locator('.q-menu .q-item >> nth = 0').click()
+        console.log('保存设置')
+        await basicPage.saveSetting()
+        console.log('成功保存')
+        await expect(await basicPage.headerTitle).toHaveText(/Basic/, { timeout: 5000 })
+        console.log('√')
+      }
     })
   })
 })
