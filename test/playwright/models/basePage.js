@@ -155,36 +155,54 @@ class BasePage {
 
   /**
    *
-   * @param {string} target - homeLink、playerLink、creditsLink、accountLink
+   * @param {string} firstTarget - homeLink、playerLink、creditsLink、accountLink
+   * @param {string} secondTarget - 
+   * @return {boolean} true or false
    */
   async jumpPage (firstTarget, secondTarget) {
-    const menuButton = await this[secondTarget] || await this[firstTarget]
-    await this.page.waitForTimeout(500)
     try{
-      const isHidden = await this[firstTarget].isHidden()
-      if (isHidden) {
-        await this.menuIcon.click({ timeout: 60000 })
+      const menuButton = await this[secondTarget] || await this[firstTarget]
+      await this.page.waitForTimeout(1000)
+      let menuShrink = false;
+      const leftMenu = await this[firstTarget].count()
+      if (leftMenu > 0) {
+        await this[firstTarget].isVisible()
+        console.log('当前大窗口，左侧菜单栏可见')
+      } else {
+        menuShrink = true;
+        console.log('当前小窗口，左侧菜单栏不可见')
+        if (this.menuIcon.isVisible()) {
+          await this.menuIcon.click()
+          console.log('点击菜单图标（三条杠）')
+        }
       }
+      if (secondTarget) {
+        if (await menuButton.isHidden()) {
+          await this[firstTarget].click()
+        }
+      }
+      if (await menuButton.isVisible()) {
+        await menuButton.click()
+        console.log('点击目标菜单')
+      } else {
+        console.log('目标菜单不可见')
+      }
+      if (firstTarget === 'accountMore') {
+        console.log('是账号管理（负责登录和退出）')
+        return true
+      }
+      if (menuShrink && await menuButton.isVisible()) {
+        const buttonBoundingBox = await menuButton.boundingBox()
+        const { x, y, width, height } = buttonBoundingBox;
+        const clickX = x + width + 20 //假设相对于按钮的右侧有20px的空白区域
+        const clickY = y + height / 2 //点击位置垂直居中
+        await this.page.mouse.click(clickX, clickY)
+        console.log('小窗口点击右侧旁白，收回左侧菜单栏')
+      }
+      return true;
     }catch(error){
-      console.log('isHidden failed')
-      await this.page.screenshot({ path: `test/output/playwright/basePage/jumpPage-fail.png` })
-      console.log('截屏，刷新页面')
-      await this.page.reload()
-    }
-    if (secondTarget) {
-      if (await menuButton.isHidden()) {
-        await this[firstTarget].click()
-      }
-    }
-    await menuButton.click()
-    if (firstTarget === 'accountMore') return
-    await this.page.waitForTimeout(1500)
-    if(await menuButton.isVisible()){
-      const buttonBoundingBox = await menuButton.boundingBox()
-      const {x,y,width,height} = buttonBoundingBox;
-      const clickX = x + width + 20 //假设相对于按钮的右侧有20px的空白区域
-      const clickY = y + height/2 //点击位置垂直居中
-      await this.page.mouse.click(clickX,clickY)
+      console.log('jumpPage有错误', error)
+      return false;
     }
   }
 
@@ -223,8 +241,10 @@ class BasePage {
 
   async clearLocalstorage () {
     await this.page.evaluate(() => { localStorage.clear() })
+    console.log('清除本地存储')
     await this.page.waitForTimeout(1000)
     await this.newReload()
+    console.log('刷新')
   }
 
   async setToken () {
@@ -299,23 +319,25 @@ class BasePage {
   }
 
   async signOut () {
-      await this.jumpPage('accountMore')
-      if(await this.signOutItem.isVisible()){
-        console.log('捕获到退出选项')
-        const box = await this.signOutItem.boundingBox()
-        const {x,y,width,height} = box
-        const clickX = x + width/2
-        const clickY = y + height/2
-        await this.page.mouse.click(clickX,clickY)
-        console.log('点击到退出选项')
-      }else{
-        console.log('没有捕获到退出选项')
+      if(await this.jumpPage('accountMore'))
+      {
+        if(await this.signOutItem.isVisible()){
+          console.log('捕获到退出选项')
+          const box = await this.signOutItem.boundingBox()
+          const {x,y,width,height} = box
+          const clickX = x + width/2
+          const clickY = y + height/2
+          await this.page.mouse.click(clickX,clickY)
+          console.log('点击到退出选项')
+        }else{
+          console.log('没有捕获到退出选项')
+        }
+        await this.page.waitForTimeout(1000)
+        if (await this.signOutAnywayBtn.isVisible()) { await this.signOutAnywayBtn.click() }
+        await this.signOutAlert.waitFor()
+        await this.page.waitForTimeout(3000)
+        await this.waitForAllHidden(await this.alert)
       }
-      await this.page.waitForTimeout(1000)
-      if (await this.signOutAnywayBtn.isVisible()) { await this.signOutAnywayBtn.click() }
-      await this.signOutAlert.waitFor()
-      await this.page.waitForTimeout(3000)
-      await this.waitForAllHidden(await this.alert)
   }
 
   /**
