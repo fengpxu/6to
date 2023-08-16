@@ -94,11 +94,13 @@ test.describe('librayKey:媒体库密钥测试', () => {
     }
     const inHome = await window.locator('.left-drawer-menu .q-item:has-text("home").active-item').count()
     if (inHome > 0) {
-      console.log('是否有Follow菜单项')
-      try {
-        await window.waitForSelector('.left-drawer-menu >> text=following', { timeout: 10000 })
+      console.log('检查是否存在Follow菜单项')
+      //等待
+      await basePage.waitForSelectorOptional('.left-drawer-menu >> text=following', { timeout: 10000 }, '不可见')
+      const followExist = await window.locator('.left-drawer-menu >> text=following').count() //小屏（不可见但存在）
+      if (followExist > 0) {
         console.log('有')
-      } catch (error) {
+      } else {
         console.log('没有')
         console.log('等待出现局部推荐页面的第一个频道')
         const firstChannel = await basePage.waitForSelectorOptional('.channel-card >> nth=5', { timeout: 60000 }, '没有出现')

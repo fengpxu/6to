@@ -133,6 +133,31 @@ class BasePage {
     this.starBtn = page.locator('button:has-text("star")')
     this.empty = page.locator('text=No data available')
   }
+
+
+  async getTextForLink(linkName){
+    const linkToTextMap = {
+      homeLink: "home",
+      followingLink: "following",
+      localFavoritesLink: "local favorites",
+      exploreLink: "travel_explore Explore",
+      editLink: "edit_note Publish",
+      downloadingStatus: "Downloading",
+      uploadingStatus: "Uploading",
+      downloadedStatus: "Downloaded",
+      playerLink: "Player",
+      creditsLink: "credits",
+      walletLink: "account_balance_wallet Wallet",
+      settingsLink: "Settings for App",
+      accountSettingLink: "account_circle Account",
+      basicLink: "Basic",
+      advancedLink: "Advanced",
+      developmentLink: "Development",
+      // 添加其他链接到文本的映射
+    };
+    return linkToTextMap[linkName];
+  };
+
   /**
    * 
    * @param {string} selector 
@@ -163,17 +188,33 @@ class BasePage {
     try{
       const menuButton = await this[secondTarget] || await this[firstTarget]
       await this.page.waitForTimeout(1000)
-      let menuShrink = false;
-      const leftMenu = await this[firstTarget].count()
-      if (leftMenu > 0) {
-        await this[firstTarget].isVisible()
+      if (await this[firstTarget].isVisible()) {
         console.log('当前大窗口，左侧菜单栏可见')
       } else {
-        menuShrink = true;
-        console.log('当前小窗口，左侧菜单栏不可见')
+        console.log('当前小窗口，侧边栏收缩')
         if (this.menuIcon.isVisible()) {
           await this.menuIcon.click()
-          console.log('点击菜单图标（三条杠）')
+          console.log('点击菜单图标, 展开侧边栏')
+        }
+        console.log('判断当前是否已经位于跳转目标页')
+        const title = await this.getTextForLink(firstTarget)
+        if (title != undefined) {
+          console.log(`title: ${title}`)
+          const inPage = await this.page.locator(`.left-drawer-menu .q-item:has-text("${title}").active-item`).count()
+          console.log(`inPage: ${inPage}`)
+          if (inPage > 0) {
+            console.log('当前已经位于跳转目标页')
+            console.log('收回侧边栏')
+            const buttonBoundingBox = await menuButton.boundingBox()
+            const { x, y, width, height } = buttonBoundingBox;
+            const clickX = x + width + 20 //假设相对于按钮的右侧有20px的空白区域
+            const clickY = y + height / 2 //点击位置垂直居中
+            await this.page.mouse.click(clickX, clickY)
+            console.log('点击右侧旁白，收回左侧菜单栏')
+            return true
+          } else {
+            console.log('不在')
+          }
         }
       }
       if (secondTarget) {
@@ -190,14 +231,6 @@ class BasePage {
       if (firstTarget === 'accountMore') {
         console.log('是账号管理（负责登录和退出）')
         return true
-      }
-      if (menuShrink && await menuButton.isVisible()) {
-        const buttonBoundingBox = await menuButton.boundingBox()
-        const { x, y, width, height } = buttonBoundingBox;
-        const clickX = x + width + 20 //假设相对于按钮的右侧有20px的空白区域
-        const clickY = y + height / 2 //点击位置垂直居中
-        await this.page.mouse.click(clickX, clickY)
-        console.log('小窗口点击右侧旁白，收回左侧菜单栏')
       }
       return true;
     }catch(error){
@@ -355,16 +388,35 @@ class BasePage {
     // if (count) await this.closeInternalNotice()
     // if not logged in
     let message = "alreadyIn";
+    console.log('当前是否位于登陆页')
     if (await this.accountInput.isVisible()) {
+      console.log('是的，立即登录')
       message = await this.signIn(username, password, isWaitAlert, isSetToken)
     } else {
-      await this.page.waitForTimeout(4000)
-      const leftBar = await this.downloadingStatus.isVisible()
-      if (!leftBar) {
+      console.log('不是，左侧菜单栏是否可见')
+      const leftMenu = await this.downloadingStatus.isVisible()
+      if (leftMenu) {
+        console.log('可见(大窗口)')
+      } else {
+        console.log('不可见(小窗口)')
         await this.menuIcon.click({noWaitAfter: true})
+        console.log('点击菜单按钮，弹出左边栏')
       }
+      console.log('是否未登录')
       if (await this.accountSignIn.isVisible()) {
+        console.log('是的，现在登录')
         message = await this.signIn(username, password, isWaitAlert, isSetToken)
+      } else {
+        console.log('状态是已登录')
+        if(!leftMenu){
+          console.log('(小窗口)收回侧边栏')
+          const buttonBoundingBox = await this.homeLink.boundingBox()
+          const { x, y, width, height } = buttonBoundingBox;
+          const clickX = x + width + 20 //假设相对于按钮的右侧有20px的空白区域
+          const clickY = y + height / 2 //点击位置垂直居中
+          await this.page.mouse.click(clickX, clickY)
+          console.log('点击右侧旁白，收回左侧菜单栏')
+        }
       }
       try {
         await this.accountMore.waitFor({ timeout: 10000 })
@@ -374,7 +426,6 @@ class BasePage {
       } catch {
         await this.page.evaluate(() => localStorage.clear())
         await this.newReload()
-        message = await this.signIn(username, password, isWaitAlert, isSetToken)
       }
     }
     return message
