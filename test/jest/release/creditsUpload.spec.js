@@ -51,18 +51,38 @@ describe('upload', () => {
     const torrentName = 'ChinaCup.1080p.H264.AAC.mp4'
     // 判断是否已经登录
     await sleep(10000)
+    console.log('ready to login')
     await accountPage.ensureSignIn(uploadUser, process.env.TEST_PASSWORD, { isWaitAlert: true })
-
+    console.log('login')
+    console.log('判断左侧栏是否可见')
+    let limit = 4
+    while (limit > 0 && !(await accountPage.libraryGroup.isDisplayed())) {
+      limit = limit - 1
+      if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath, { recursive: true })
+      }
+      await client.saveScreenshot(outputPath + `/click-full-screen-limit${limit}.png`)
+      console.log('locate full-screen button')
+      await accountPage.fullScreenBtn.click()
+      console.log('full screen!')
+    }
     // 查看初始积分
+    console.log('准备跳转到积分页')
     await homePage.jumpPage('creditsLink')
+    console.log('成功跳转')
     const initialCredit = await creditsPage.checkCredits()
     console.log('initialCredit:' + initialCredit)
     // 判断是否已经上传
+    console.log('准备跳转到--上传中')
     await homePage.jumpPage('uploadingStatusTab')
+    console.log('成功跳转')
     await sleep(3000)
     await homePage.setCardMode()
+    console.log('设置卡片模式')
     if (await homePage.getTask(torrentName) === null) {
+      console.log('准备跳转到--已下载')
       await homePage.jumpPage('downloadedStatusTab')
+      console.log('成功跳转')
       // 上传bt种子
       if (await homePage.getTask(torrentName) === null) {
         await homePage.jumpPage('uploadingStatusTab')
@@ -74,8 +94,9 @@ describe('upload', () => {
 
     const taskStatus = await homePage.getTaskStatus(torrentName)
     expect(taskStatus).toBe('Status: Uploading')
-
+    console.log('准备跳转到--积分页')
     await homePage.jumpPage('creditsLink')
+    console.log('成功跳转')
     let changedCredit
     while (1) {
       changedCredit = await creditsPage.checkCredits()
@@ -86,5 +107,20 @@ describe('upload', () => {
     await sleep(10000)
     console.log('wait download complete')
     isSuccess = true
+  })
+  it.skip('test', async () => {
+    await sleep(10000)
+    console.log('ensure Log In')
+    await accountPage.ensureSignIn(uploadUser, process.env.TEST_PASSWORD, { isWaitAlert: true })
+    console.log('Login')
+    console.log('判断左侧栏是否可见')
+    while (!(await accountPage.libraryGroup.isDisplayed())) {
+      console.log('locate full-screen button')
+      await accountPage.fullScreenBtn.click()
+      console.log('full screen!')
+    }
+    console.log('ready sign out')
+    await accountPage.signOut()
+    console.log('sign out')
   })
 })

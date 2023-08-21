@@ -1,9 +1,10 @@
-test library
-test library
-test library
-test library
-test main
-test main
-test main
-test main
-test main
+test appium
+test library key
+test appium
+test e2e
+test e2e
+test appium
+test appium
+test appium
+test appium
+test appium
