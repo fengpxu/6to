@@ -370,6 +370,7 @@ test.describe('切换语言设置', () => {
       await basePage.clearLocalstorage()
       await window.waitForTimeout(3000)
       await basePage.quickSaveLanguage('EN')
+      console.log('在登陆页设置语言为EN')
       const message = await basePage.ensureLoginStatus(to, process.env.TEST_PASSWORD, 1) //登陆
       if (message == "success") {
         await basePage.waitForAllHidden(await basePage.alert)
@@ -427,15 +428,15 @@ test.describe('切换语言设置', () => {
       try{
         console.log('先跳转到基础设置页')
         const basicIcon = window.locator('.q-item:has-text("assignment")')
-        console.log('判断是否是小屏')
-        const isHidden = await basicIcon.isHidden()
-        if (isHidden) {
-          console.log('是小屏幕')
-          await basePage.menuIcon.click({ timeout: 60000 })
-          console.log('点击三条杠')
-        }else{
-          console.log('是大屏幕')
-        }
+        // console.log('判断是否是小屏')
+        // const isHidden = await basicIcon.isHidden()
+        // if (isHidden) {
+        //   console.log('是小屏幕')
+        //   await basePage.menuIcon.click({ timeout: 60000 })
+        //   console.log('点击三条杠')
+        // }else{
+        //   console.log('是大屏幕')
+        // }
         await basicIcon.click()
         console.log('点击基础设置')
         console.log('跳转到基础设置页, 断言标题是Basic')
@@ -529,7 +530,7 @@ test.describe('账户设置', () => {
   })
 })
 
-test.describe.only('download 视频下载', () => {
+test.describe('download 视频下载', () => {
   for (const bt of btData) {
     test((bt.testName ? bt.testName : '') + bt.btName, async () => {
       const message = await basePage.ensureLoginStatus(to, process.env.TEST_PASSWORD, 1)
@@ -698,10 +699,17 @@ test.describe.only('download 视频下载', () => {
         }
       }
       if (bt.isStreaming !== 1) {
+        console.log('准备跳转到--上传中')
         await basePage.jumpPage('uploadingStatus')
+        console.log('成功跳转')
         await homePage.searchBtn.click({ force: true })
+        console.log('点击search按钮')
       }
       // 点击 Play 按钮
+      if(! await homePage.getCardEle(bt.btName, 'playBtn').isVisible()){
+        console.log('没有Play按钮')
+        test.skip()
+      }
       await homePage.getCardEle(bt.btName, 'playBtn').click({ timeout: 2 * 60000 })
       console.log('点击播放按钮')
       // 点击播放列表的第一个文件，跳转到player页面

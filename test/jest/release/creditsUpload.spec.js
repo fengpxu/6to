@@ -98,9 +98,13 @@ describe('upload', () => {
     await homePage.jumpPage('creditsLink')
     console.log('成功跳转')
     let changedCredit
-    while (1) {
+    // 5s 40min就是2400s
+    for (let i = 0; i < 480; i++) {
       changedCredit = await creditsPage.checkCredits()
-      if (calculation('reduce', changedCredit, initialCredit) >= 0.001) break
+      if (calculation('reduce', changedCredit, initialCredit) >= 0.001) {
+        //console.log('credit change')
+        // break;
+      }
       await sleep(5000)
     }
     console.log('credits increase:' + changedCredit)

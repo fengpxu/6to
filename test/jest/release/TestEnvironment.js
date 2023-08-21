@@ -20,13 +20,10 @@ export const opts = {
     deviceName: 'WindowsPC',
     appWaitDuration: 60000,
     createSessionTimeout: 60000,
-    app: AlphabizAppPath
+    app: AlphabizAppPath,
+    ms: {
+      waitForAppLaunch: 25
+    }
   },
   logLevel: 'error'
-  // afterTest: function (test) {
-  // if (test.error !== undefined) {
-  //   const name = 'ERROR-' + Date.now()
-  //   browser.saveScreenshot('./errorShots/' + name + '.png')
-  // }
-  // }
 }
