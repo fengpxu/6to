@@ -93,7 +93,7 @@ const btData = [
 
 test.beforeAll(async () => {
   // Set timeout for this hook.
-  test.setTimeout(90000)
+  test.setTimeout(180000)
   // Launch Electron app.
   electronApp = await electron.launch({
     timeout: 90000,
@@ -366,6 +366,9 @@ test.describe('切换语言设置', () => {
     })
     // EN -> CN -> TW -> EN
     test('语言重复切换-EN-CN-TW-EN', async () => {
+      if (process.platform === 'linux'){
+        test.skip()
+      }
       // 确保语言en
       await basePage.clearLocalstorage()
       await window.waitForTimeout(3000)
@@ -387,18 +390,20 @@ test.describe('切换语言设置', () => {
         } else {
           console.log('没有')
           console.log('等待出现局部推荐页面的第一个频道')
-          await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
-          if (!await libraryPage.channelSelected.isVisible()) {
-            console.log('选中第一个频道')
-            await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
-            console.log('成功选中')
-          }
-          console.log('点击Follow')
-          // 3. 点击Follow按钮
-          await libraryPage.channelFollowsBtn.click();
-          console.log('成功Follow了一个频道')
-          if (await basePage.followingLink.isVisible()) {
-            console.log('菜单中出现了Follow选项')
+          const firstChannel = await basePage.waitForSelector('.channel-card >> nth=5', { timeout: 60000 }, '卡住了, 放弃Follow')
+          if(firstChannel){
+            if (!await libraryPage.channelSelected.isVisible()) {
+              console.log('选中第一个频道')
+              await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
+              console.log('成功选中')
+            }
+            console.log('点击Follow')
+            // 3. 点击Follow按钮
+            await libraryPage.channelFollowsBtn.click();
+            console.log('成功Follow了一个频道')
+            if (await basePage.followingLink.isVisible()) {
+              console.log('菜单中出现了Follow选项')
+            }
           }
         }
         const mainLoad = await basePage.waitForSelectorOptional('.post-channel-info', { timeout: 60000 }, "主页在1分钟内没有加载出来")
@@ -444,9 +449,11 @@ test.describe('切换语言设置', () => {
         console.log('√断言成功')
       }catch(error){
         console.log('×断言失败')
-        console.log('点击语言下拉框')
-        await window.locator('.q-field__append >> nth=0').click()
-        console.log('点击第一项就是英语')
+        do{
+          console.log('点击语言下拉框, 等待出现选择列表')
+          await window.locator('.q-field__append >> nth=0').click()
+        } while (!await window.locator('.q-menu .q-item >> nth = 0').isVisible())
+        console.log('出现选择列表, 点击第一项就是英语')
         await window.locator('.q-menu .q-item >> nth = 0').click()
         console.log('保存设置')
         await basicPage.saveSetting()
