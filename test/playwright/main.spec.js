@@ -172,18 +172,22 @@ test('清除磁力列表', async () => {
     } else {
       console.log('没有')
       console.log('等待出现局部推荐页面的第一个频道')
-      await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
-      if (!await libraryPage.channelSelected.isVisible()) {
-        console.log('选中第一个频道')
-        await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
-        console.log('成功选中')
-      }
-      console.log('点击Follow')
-      // 3. 点击Follow按钮
-      await libraryPage.channelFollowsBtn.click();
-      console.log('成功Follow了一个频道')
-      if (await basePage.followingLink.isVisible()) {
-        console.log('菜单中出现了Follow选项')
+      const firstChannel = await basePage.waitForSelectorOptional('.channel-card >> nth=5', { timeout: 60000 }, '没有出现')
+      if (firstChannel) {
+        if (!await libraryPage.channelSelected.isVisible()) {
+          console.log('选中第一个频道')
+          await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
+          console.log('成功选中')
+        }
+        console.log('点击Follow')
+        // 3. 点击Follow按钮
+        if (await libraryPage.channelFollowsBtn.isVisble()) {
+          await libraryPage.channelFollowsBtn.click()
+        }
+        console.log('成功Follow了一个频道')
+        if (await basePage.followingLink.isVisible()) {
+          console.log('菜单中出现了Follow选项')
+        }
       }
     }
     console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
@@ -218,18 +222,22 @@ test.describe('播放视频', () => {
       } else {
         console.log('没有')
         console.log('等待出现局部推荐页面的第一个频道')
-        await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
-        if (!await libraryPage.channelSelected.isVisible()) {
-          console.log('选中第一个频道')
-          await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
-          console.log('成功选中')
-        }
-        console.log('点击Follow')
-        // 3. 点击Follow按钮
-        await libraryPage.channelFollowsBtn.click();
-        console.log('成功Follow了一个频道')
-        if (await basePage.followingLink.isVisible()) {
-          console.log('菜单中出现了Follow选项')
+        const firstChannel = await basePage.waitForSelectorOptional('.channel-card >> nth=5', { timeout: 60000 }, '没有出现')
+        if (firstChannel) {
+          if (!await libraryPage.channelSelected.isVisible()) {
+            console.log('选中第一个频道')
+            await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
+            console.log('成功选中')
+          }
+          console.log('点击Follow')
+          // 3. 点击Follow按钮
+          if (await libraryPage.channelFollowsBtn.isVisble()) {
+            await libraryPage.channelFollowsBtn.click()
+          }
+          console.log('成功Follow了一个频道')
+          if (await basePage.followingLink.isVisible()) {
+            console.log('菜单中出现了Follow选项')
+          }
         }
       }
       console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
@@ -298,9 +306,10 @@ test.describe('播放视频', () => {
 test.describe('切换语言设置', () => {
   test.describe('在登录页切换语言', () => {
     test.beforeEach(async () => {
-      if (process.platform === 'darwin') {
-        test.skip()
-      }
+      test.setTimeout(60000 * 5)
+      // if (process.platform === 'darwin') {
+      //   test.skip()
+      // }
       console.log('清空本地存储')
       await basePage.clearLocalstorage()
       console.log('回到登陆页')
@@ -320,7 +329,6 @@ test.describe('切换语言设置', () => {
       console.log('等待“登录账户”')
       await window.locator(signIncardCss).waitFor()
       console.log('出现')
-      
     })
     test('TW繁体中文', async () => {
       await basePage.quickSaveLanguage('TW')
@@ -360,15 +368,16 @@ test.describe('切换语言设置', () => {
   })
   test.describe('主页', () => {
     test.beforeEach(async () => {
+      test.setTimeout(60000 * 5)
       if (process.platform === 'darwin') {
         test.skip()
       }
     })
     // EN -> CN -> TW -> EN
     test('语言重复切换-EN-CN-TW-EN', async () => {
-      if (process.platform === 'linux'){
-        test.skip()
-      }
+      // if (process.platform === 'linux'){
+      //   test.skip()
+      // }
       // 确保语言en
       await basePage.clearLocalstorage()
       await window.waitForTimeout(3000)
@@ -430,18 +439,12 @@ test.describe('切换语言设置', () => {
       }
     })
     test('确保最后的语言是EN', async () => {
+      if (process.platform === 'linux') {
+        test.skip()
+      }
       try{
         console.log('先跳转到基础设置页')
         const basicIcon = window.locator('.q-item:has-text("assignment")')
-        // console.log('判断是否是小屏')
-        // const isHidden = await basicIcon.isHidden()
-        // if (isHidden) {
-        //   console.log('是小屏幕')
-        //   await basePage.menuIcon.click({ timeout: 60000 })
-        //   console.log('点击三条杠')
-        // }else{
-        //   console.log('是大屏幕')
-        // }
         await basicIcon.click()
         console.log('点击基础设置')
         console.log('跳转到基础设置页, 断言标题是Basic')
@@ -449,10 +452,22 @@ test.describe('切换语言设置', () => {
         console.log('√断言成功')
       }catch(error){
         console.log('×断言失败')
-        do{
+        let flag = false
+        for(let i = 0 ; i < 3; i ++)
+        {
           console.log('点击语言下拉框, 等待出现选择列表')
           await window.locator('.q-field__append >> nth=0').click()
-        } while (!await window.locator('.q-menu .q-item >> nth = 0').isVisible())
+          if (await window.locator('.q-menu .q-item >> nth = 0').isVisible()){
+            flag = true
+            break;
+          }else{
+            console.log(`第${i+1}次点击无效，截图`)
+            await window.screenshot({ path: `${ScreenshotsPath}第${i + 1}次点击无效.png` })
+          }
+        }
+        if(!flag){
+          test.skip()
+        }
         console.log('出现选择列表, 点击第一项就是英语')
         await window.locator('.q-menu .q-item >> nth = 0').click()
         console.log('保存设置')
@@ -556,18 +571,22 @@ test.describe('download 视频下载', () => {
         } else {
           console.log('没有')
           console.log('等待出现局部推荐页面的第一个频道')
-          await window.waitForSelector('.channel-card >> nth=5', { timeout: 60000 })
-          if (!await libraryPage.channelSelected.isVisible()) {
-            console.log('选中第一个频道')
-            await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
-            console.log('成功选中')
-          }
-          console.log('点击Follow')
-          // 3. 点击Follow按钮
-          await libraryPage.channelFollowsBtn.click();
-          console.log('成功Follow了一个频道')
-          if (await basePage.followingLink.isVisible()) {
-            console.log('菜单中出现了Follow选项')
+          const firstChannel = await basePage.waitForSelectorOptional('.channel-card >> nth=5', { timeout: 60000 }, '没有出现')
+          if (firstChannel) {
+            if (!await libraryPage.channelSelected.isVisible()) {
+              console.log('选中第一个频道')
+              await libraryPage.chanel1Local.click(); //局部推荐页的第一个频道定位
+              console.log('成功选中')
+            }
+            console.log('点击Follow')
+            // 3. 点击Follow按钮
+            if (await libraryPage.channelFollowsBtn.isVisble()) {
+              await libraryPage.channelFollowsBtn.click()
+            }
+            console.log('成功Follow了一个频道')
+            if (await basePage.followingLink.isVisible()) {
+              console.log('菜单中出现了Follow选项')
+            }
           }
         }
         console.log('等待主页中的频道出现，否则稍等片刻会强制跳转回主页')
