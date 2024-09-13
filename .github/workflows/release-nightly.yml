@@ -40,7 +40,7 @@ jobs:
       file-name-lower: ${{ steps.slug.outputs.file-name-lower }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest-large]
         node-version: [16]
         include:
           - os: windows-latest
@@ -137,7 +137,7 @@ jobs:
           if [[ ${{ matrix.os }} = "ubuntu-latest" ]] ; \
           then echo "system=ubuntu" >> $GITHUB_OUTPUT ; \
             echo "package=${{ steps.slug.outputs.display-name }}-linux-x64" >> $GITHUB_OUTPUT ; \
-          elif [[ ${{ matrix.os }} = "macos-latest" ]] ; \
+          elif [[ ${{ matrix.os }} = "macos-latest-large" ]] ; \
           then echo "system=macos" >> $GITHUB_OUTPUT ; \
             echo "package=${{ steps.slug.outputs.display-name }}-darwin-arm64" >> $GITHUB_OUTPUT ; \
           elif [[ ${{ matrix.os }} = "windows-latest" ]] ; \
@@ -511,7 +511,7 @@ jobs:
       - name: Release ${{ steps.slug.outputs.file-name-lower }}-${{ steps.unify.outputs.package-name }}-${{ steps.vars.outputs.system }} to GitHub 📰
         if: |
           (contains(steps.vars.outputs.event-name, 'schedule') || contains(env.MODIFIED_FILE_LIST, 'release.json')) &&
-          (matrix.os != 'macos-latest' || contains(steps.check.outputs.isBuildUniversal, '0'))
+          (matrix.os != 'macos-latest-large' || contains(steps.check.outputs.isBuildUniversal, '0'))
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
@@ -737,7 +737,7 @@ jobs:
           if [[ ${{ matrix.os }} = "ubuntu-latest" ]] ; \
           then echo "system=ubuntu" >> $GITHUB_OUTPUT ; \
             echo "package=${{ steps.slug.outputs.display-name }}-linux-x64" >> $GITHUB_OUTPUT ; \
-          elif [[ ${{ matrix.os }} = "macos-latest" ]] ; \
+          elif [[ ${{ matrix.os }} = "macos-latest-large" ]] ; \
           then echo "system=macos" >> $GITHUB_OUTPUT ; \
             echo "package=${{ steps.slug.outputs.display-name }}-darwin-x64" >> $GITHUB_OUTPUT ; \
           elif [[ ${{ matrix.os }} = "windows-latest" ]] ; \
@@ -806,9 +806,11 @@ jobs:
           sudo snap install multipass --classic
 
       - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
+        uses: samuelmeuli/action-snapcraft@v2
         with:
           use_lxd: true
+        env:
+          INPUT_CHANNEL: 7.x/stable
 
       - name: Pack snap 📦
         run: yarn make:snap:ci
