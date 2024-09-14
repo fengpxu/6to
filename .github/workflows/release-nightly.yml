@@ -40,11 +40,11 @@ jobs:
       file-name-lower: ${{ steps.slug.outputs.file-name-lower }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest-large]
+        os: [ubuntu-latest] # [ubuntu-latest, macos-latest-large]
         node-version: [16]
-        include:
-          - os: windows-latest
-            node-version: 16
+        # include:
+        #   - os: windows-latest
+        #     node-version: 16
       fail-fast: false
     environment:
       name: CICD
@@ -139,7 +139,7 @@ jobs:
             echo "package=${{ steps.slug.outputs.display-name }}-linux-x64" >> $GITHUB_OUTPUT ; \
           elif [[ ${{ matrix.os }} = "macos-latest-large" ]] ; \
           then echo "system=macos" >> $GITHUB_OUTPUT ; \
-            echo "package=${{ steps.slug.outputs.display-name }}-darwin-arm64" >> $GITHUB_OUTPUT ; \
+            echo "package=${{ steps.slug.outputs.display-name }}-darwin-x64" >> $GITHUB_OUTPUT ; \
           elif [[ ${{ matrix.os }} = "windows-latest" ]] ; \
           then echo "system=windows" >> $GITHUB_OUTPUT ; \
             echo "package=${{ steps.slug.outputs.display-name }}-win32-x64" >> $GITHUB_OUTPUT ; \
@@ -806,11 +806,28 @@ jobs:
           sudo snap install multipass --classic
 
       - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v2
-        with:
-          use_lxd: true
-        env:
-          INPUT_CHANNEL: 7.x/stable
+        run: |
+          echo $USER
+          echo '------------------------------'
+          sudo snap install snapcraft --classic --channel 7.x/stable
+          sudo snap install lxd
+          sudo usermod --append --groups lxd $USER
+          echo '------------------------------'
+          echo /snap/bin >> $GITHUB_PATH
+          sudo chown root:root /
+          sudo /snap/bin/lxd.migrate -yes
+          sudo /snap/bin/lxd waitready
+          sudo /snap/bin/lxd init --auto
+          sudo lxc storage create mypool dir
+          echo '------------------------------'
+          groups
+
+      # - name: Install Snapcraft
+      #   uses: samuelmeuli/action-snapcraft@v2
+      #   with:
+      #     use_lxd: true
+        #   env:
+        #     INPUT_CHANNEL: 7.x/stable
 
       - name: Pack snap 📦
         run: yarn make:snap:ci
